@@ -1,9 +1,9 @@
-from settings import get_settings
+from settings import get_CognitoSettings
 import jwt
 from jwt import PyJWKClient
 from fastapi import Request, HTTPException
 
-settings = get_settings()
+settings = get_CognitoSettings()
 
 REGION = settings.REGION
 USERPOOL_ID = settings.USERPOOL_ID
@@ -27,17 +27,26 @@ def get_token_from_header(request: Request) -> str:
 
 
 def verify_cognito_jwt(token: str) -> dict:
-    # 公開鍵の取得
-    signing_key = jwks_client.get_signing_key_from_jwt(token)
-    data = jwt.decode(
-        token,
-        signing_key.key,
-        algorithms=["RS256"],
-        audience=APP_CLIENT_ID,
-        issuer=f"https://cognito-idp.{REGION}.amazonaws.com/{USERPOOL_ID}",
-        options={"require": ["exp", "iat", "iss", "sub"], "verify_aud": True},
-    )
-    return data
+    try:
+        # 公開鍵の取得
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        data = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            audience=APP_CLIENT_ID,
+            issuer=f"https://cognito-idp.{REGION}.amazonaws.com/{USERPOOL_ID}",
+            options={"require": ["exp", "iat", "iss", "sub"], "verify_aud": True},
+        )
+        return data
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        raise HTTPException(
+            status_code=401, detail=f"Token validation failed: {str(e)}"
+        )
 
 
 def extract_user_id_from_token(request: Request) -> str:
