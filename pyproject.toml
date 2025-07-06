@@ -1,0 +1,18 @@
+[project]
+name = "progate-aws-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.39.3",
+    "fastapi>=0.115.14",
+    "uvicorn>=0.35.0",
+    "websocket>=0.2.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "ruff>=0.12.2",
+]
