@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-from routers import user
+from routers import play
+from routers import share
+from routers import costs
 
 app = FastAPI()
 
@@ -21,10 +23,10 @@ def health_check():
     return {"message": "Hello"}
 
 
-prefix = "/api"
-app.include_router(user.user_router, prefix=prefix)
-# app.include_router(room.room_router, prefix=prefix)
-# app.include_router(game.game_router, prefix=prefix)
+
+app.include_router(play.play_router)
+app.include_router(share.share_router)
+app.include_router(costs.costs_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)
