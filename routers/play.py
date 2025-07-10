@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 import models.play as play_models
 import boto3
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 import uuid
 from datetime import datetime
 from settings import get_DynamoDbConnect
@@ -32,9 +32,9 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> 
     response = table.query(
         KeyConditionExpression=Key("PK").eq("entity") & Key("SK").eq("metadata")
     )
-    data = response.get("Items", [{}])[0].get("scenarioes", {})
+    formatted_data = response.get("Items", [{}])[0]
 
-    return play_models.Scenarioes(**data)
+    return play_models.Scenarioes(**formatted_data)
 
 @play_router.post("/play/create")
 async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
@@ -43,8 +43,8 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
     sandbox_id = str(uuid.uuid4())
 
     game_item = {
-        "PK": f"{user_id}#user",
-        "SK": f"{game_id}#game",
+        "PK": f"user#{user_id}",
+        "SK": f"game#{game_id}",
         "struct": None,
         "funds": 0,
         "current_month": 0, 
@@ -56,8 +56,8 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
     table.put_item(Item=game_item)
 
     sandbox_item = {
-        "PK": f"{user_id}#user",
-        "SK": f"{sandbox_id}#sandbox",
+        "PK": f"user#{user_id}",
+        "SK": f"sandbox#{sandbox_id}",
         "struct": None,
         "is_published": False,
         "created_at": datetime.now().isoformat(),
@@ -77,3 +77,26 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
     }
 
     return play_models.CreateGameResponse(**formatted_response)
+
+@play_router.get("/play/games")
+async def get_game(user_id: str = Depends(extract_user_id_from_token)) -> play_models.GetGameResponse:
+    formatted_user_id = f"user#{user_id}"
+
+    response = table.query(
+        KeyConditionExpression=Key("PK").eq(formatted_user_id) & Key("SK").begins_with("game"),
+        FilterExpression=Attr("is_finished").eq(False)
+    )
+    game_data = response.get("Items", [{}])[0]
+    
+    formatted_response = {
+        "user_id": game_data.get("PK", "").replace("user#", ""),
+        "game_id": game_data.get("SK", "").replace("game#", ""),
+        "struct": game_data.get("struct"),
+        "funds": game_data.get("funds"),
+        "current_month": game_data.get("current_month"),
+        "scenarioes": game_data.get("scenarioes"),
+        "is_finished": game_data.get("is_finished"),
+        "created_at": game_data.get("created_at")
+    }
+
+    return play_models.GetGameResponse(**formatted_response)
