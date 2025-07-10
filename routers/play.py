@@ -40,10 +40,11 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> 
 async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
     game_id = str(uuid.uuid4())
+    sandbox_id = str(uuid.uuid4())
 
-    item = {
-        "PK": user_id,
-        "SK": game_id,
+    game_item = {
+        "PK": f"{user_id}#user",
+        "SK": f"{game_id}#game",
         "struct": None,
         "funds": 0,
         "current_month": 0, 
@@ -52,17 +53,27 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
         "created_at": datetime.now().isoformat(),
     }
 
-    table.put_item(Item=item)
+    table.put_item(Item=game_item)
+
+    sandbox_item = {
+        "PK": f"{user_id}#user",
+        "SK": f"{sandbox_id}#sandbox",
+        "struct": None,
+        "is_published": False,
+        "created_at": datetime.now().isoformat(),
+    }
+
+    table.put_item(Item=sandbox_item)   
 
     formatted_response = {
         "user_id": user_id,
         "game_id": game_id,
-        "struct": item["struct"],
-        "funds": item["funds"],
-        "current_month": item["current_month"],
-        "scenarioes": item["scenarioes"],
-        "is_finished": item["is_finished"],
-        "created_at": item["created_at"],
+        "struct": game_item["struct"],
+        "funds": game_item["funds"],
+        "current_month": game_item["current_month"],
+        "scenarioes": game_item["scenarioes"],
+        "is_finished": game_item["is_finished"],
+        "created_at": game_item["created_at"],
     }
 
     return play_models.CreateGameResponse(**formatted_response)
