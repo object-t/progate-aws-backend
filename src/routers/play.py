@@ -37,11 +37,10 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> 
     return play_models.Scenarioes(**formatted_data)
 
 @play_router.post("/play/create")
-async def create_game(request: play_models.CreateGameRequest) -> play_models.CreateGameResponse:
+async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
     game_name = request.game_name
 
-    user_id = str(uuid.uuid4())
     game_id = str(uuid.uuid4())
     sandbox_id = str(uuid.uuid4())
 
