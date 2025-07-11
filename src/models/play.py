@@ -13,6 +13,7 @@ class Scenarioes(BaseModel):
 
 class CreateGameRequest(BaseModel):
     scenarioes: str
+    game_name: str
 
 class CreateGameResponse(BaseModel):
     user_id: str

@@ -37,14 +37,18 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> 
     return play_models.Scenarioes(**formatted_data)
 
 @play_router.post("/play/create")
-async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
+async def create_game(request: play_models.CreateGameRequest) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
+    game_name = request.game_name
+
+    user_id = str(uuid.uuid4())
     game_id = str(uuid.uuid4())
     sandbox_id = str(uuid.uuid4())
 
     game_item = {
         "PK": f"user#{user_id}",
         "SK": f"game#{game_id}",
+        "game_name": game_name,
         "struct": None,
         "funds": 0,
         "current_month": 0, 
@@ -68,6 +72,7 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
     formatted_response = {
         "user_id": user_id,
         "game_id": game_id,
+        "game_name": game_name,
         "struct": game_item["struct"],
         "funds": game_item["funds"],
         "current_month": game_item["current_month"],
