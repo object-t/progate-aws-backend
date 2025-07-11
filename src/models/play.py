@@ -18,6 +18,7 @@ class CreateGameRequest(BaseModel):
 class CreateGameResponse(BaseModel):
     user_id: str
     game_id: str
+    game_name: str
     struct: Optional[dict] = None
     funds: int
     current_month: int
@@ -28,6 +29,7 @@ class CreateGameResponse(BaseModel):
 class GetGameResponse(BaseModel):
     user_id: str
     game_id: str
+    game_name: str
     struct: Optional[dict] = None
     funds: int
     current_month: int

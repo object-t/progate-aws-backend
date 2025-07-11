@@ -3,6 +3,7 @@ import models.play as play_models
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 import uuid
+import json
 from datetime import datetime
 from settings import get_DynamoDbConnect
 from routers.extractor import extract_user_id_from_token
@@ -95,6 +96,7 @@ async def get_game(user_id: str = Depends(extract_user_id_from_token)) -> play_m
     formatted_response = {
         "user_id": game_data.get("PK", "").replace("user#", ""),
         "game_id": game_data.get("SK", "").replace("game#", ""),
+        "game_name": game_data.get("game_name"),
         "struct": game_data.get("struct"),
         "funds": game_data.get("funds"),
         "current_month": game_data.get("current_month"),
@@ -104,3 +106,50 @@ async def get_game(user_id: str = Depends(extract_user_id_from_token)) -> play_m
     }
 
     return play_models.GetGameResponse(**formatted_response)
+
+@play_router.post("play/ai/{game_id}")
+async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_id_from_token)):
+
+    formatted_user_id = f"user#{user_id}"
+
+    response = table.query(
+        KeyConditionExpression=Key("PK").eq(formatted_user_id) & Key("SK").begins_with("game"),
+        FilterExpression=Attr("is_finished").eq(False)
+    )
+    game_data = response.get("Items", [{}])[0]
+    
+    formatted_response = {
+        "user_id": game_data.get("PK", "").replace("user#", ""),
+        "game_id": game_data.get("SK", "").replace("game#", ""),
+        "game_name": game_data.get("game_name"),
+        "struct": game_data.get("struct"),
+        "funds": game_data.get("funds"),
+        "current_month": game_data.get("current_month"),
+        "scenarioes": game_data.get("scenarioes"),
+        "is_finished": game_data.get("is_finished"),
+        "created_at": game_data.get("created_at")
+    }
+
+    struct = formatted_response.struct
+
+    prompt = f"あなたは、AWSのエキスパートです。この{struct}はawsのアーキテクチャ図を表しています。これを元にこのアーキテクチャ図に対してアドバイスをしてください。"
+
+    session = boto3.Session(profile_name='bedrock', region_name=REGION)
+    bedrock = session.client(service_name='bedrock-runtime')
+
+    body = json.dumps({
+        'prompt': '\n\nHuman:{0}\n\nAssistant:'.format(prompt),
+        'max_tokens_to_sample': 500,
+        'temperature': 0.1,
+        'top_p': 0.9
+    })
+                    
+    modelId = 'anthropic.claude-v2'
+    accept = 'application/json'
+    contentType = 'application/json'
+
+    response = bedrock.invoke_model(body=body, modelId=modelId, accept=accept, contentType=contentType)
+
+    response_body = json.loads(response.get('body').read())
+    answer = response_body.get('completion')
+    return answer
