@@ -2,11 +2,13 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker/Dockerfile_dev
     ports:
       - "8080:8000"
     env_file:
       - .env
+    volumes:
+      - ./src:/app/src
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
