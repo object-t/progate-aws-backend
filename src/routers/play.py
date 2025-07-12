@@ -4,13 +4,9 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 import uuid
 import json
-from datetime import datetime
-<<<<<<< HEAD
-from settings import get_BedrockSettings, get_DynamoDbSettings
-=======
 from decimal import Decimal
-from settings import get_DynamoDbConnect
->>>>>>> 956518e (fix: /play/report)
+from datetime import datetime
+from settings import get_BedrockSettings, get_DynamoDbSettings
 from routers.extractor import extract_user_id_from_token
 from routers.costs import get_costs, calculate_final_cost
 from routers.helpers.service import scenario_service
@@ -125,21 +121,11 @@ def convert_struct_for_cost_calculation(struct_data):
 
 
 play_router = APIRouter()
-<<<<<<< HEAD
 bedrocksettings = get_BedrockSettings()
 dynamodbsettings = get_DynamoDbSettings()
 
 BEDROCK_REGION = bedrocksettings.BEDROCK_REGION
 REGION = dynamodbsettings.REGION
-=======
-
-settings = get_DynamoDbConnect()
-
-DYNAMODB_ENDPOINT = settings.DYNAMODB_ENDPOINT
-REGION = settings.REGION
-AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
->>>>>>> 956518e (fix: /play/report)
 
 dynamodb = boto3.resource(
     "dynamodb",
@@ -159,12 +145,7 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)):
     return response_items
 
 @play_router.post("/play/create")
-<<<<<<< HEAD
 async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
-=======
-# async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
-async def create_game(request: play_models.CreateGameRequest, user_id: str) -> play_models.CreateGameResponse:
->>>>>>> 956518e (fix: /play/report)
     scenarioes = request.scenarioes
     game_name = request.game_name
 
@@ -359,23 +340,21 @@ async def get_advice_from_ai(
     user_id: str = Depends(extract_user_id_from_token)
 ):
     """AIからのアドバイスを取得"""
-    try:
-        formatted_user_id = f"user#{user_id}"
+    formatted_user_id = f"user#{user_id}"
 
-        response = table.query(
-            KeyConditionExpression=Key("PK").eq(formatted_user_id)
-            & Key("SK").begins_with("game"),
-            FilterExpression=Attr("is_finished").eq(False),
-            ProjectionExpression="struct"
-        )
-        
-        items = response.get("Items", [])
-        if not items:
-            raise HTTPException(status_code=404, detail="進行中のゲームが見つかりません")
-        
-        struct = items[0].get("struct", {})
+    response = table.query(
+        KeyConditionExpression=Key("PK").eq(formatted_user_id)
+        & Key("SK").begins_with("game"),
+        FilterExpression=Attr("is_finished").eq(False),
+        ProjectionExpression="struct"
+    )
+    
+    items = response.get("Items", [])
+    if not items:
+        raise HTTPException(status_code=404, detail="進行中のゲームが見つかりません")
+    
+    struct = items[0].get("struct", {})
 
-<<<<<<< HEAD
     struct_json = json.dumps(struct, indent=2, ensure_ascii=False)
     prompt = f"""
         あなたはAWS Bedrockのマジエキスパートです。
@@ -398,55 +377,34 @@ async def get_advice_from_ai(
         service_name="bedrock-runtime",
         region_name=BEDROCK_REGION,
     )
-=======
-        struct_json = json.dumps(struct, indent=2, ensure_ascii=False)
-        prompt = f"あなたは、AWSのエキスパートです。この構造について何かアドバイスをして欲しいです：\n\n{struct_json}\n\nその際に、メンズコーチジョージのような口調で答えてください。"
 
-        try:
-            bedrock = boto3.client(
-                service_name="bedrock-runtime",
-                region_name=REGION,
-                aws_access_key_id=AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-            )
->>>>>>> 956518e (fix: /play/report)
-
-            body = json.dumps(
+    body = json.dumps(
+        {
+            "messages": [
                 {
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
-                    "max_tokens": 500,
-                    "temperature": 0.1,
-                    "top_p": 0.9,
-                    "anthropic_version": "bedrock-2023-05-31"
+                    "role": "user",
+                    "content": prompt
                 }
-            )
+            ],
+            "max_tokens": 500,
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "anthropic_version": "bedrock-2023-05-31"
+        }
+    )
 
-            modelId = "us.anthropic.claude-sonnet-4-20250514-v1:0"
-            accept = "application/json"
-            contentType = "application/json"
+    modelId = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    accept = "application/json"
+    contentType = "application/json"
 
-            response = bedrock.invoke_model(
-                body=body, modelId=modelId, accept=accept, contentType=contentType
-            )
+    response = bedrock.invoke_model(
+        body=body, modelId=modelId, accept=accept, contentType=contentType
+    )
 
-            response_body = json.loads(response.get("body").read())
-            answer = response_body["content"][0]["text"]
-            return {"advice": answer}
-        except Exception as bedrock_error:
-            # Bedrockが利用できない場合のフォールバック
-            return {
-                "advice": "申し訳ございませんが、現在AIアドバイス機能は利用できません。後ほど再度お試しください。",
-                "error": "Bedrock service unavailable"
-            }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AIアドバイス取得エラー: {str(e)}")
+    response_body = json.loads(response.get("body").read())
+    answer = response_body["content"][0]["text"]
+    return {"advice": answer}
+  
 
 @play_router.put("/play/{game_id}")
 async def update_game(game_id: str, request: play_models.UpdateGameRequest, user_id: str = "test-user-123"):
