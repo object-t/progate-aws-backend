@@ -32,7 +32,7 @@ class CognitoSettings(LoadRegion):
 def get_CognitoSettings() -> CognitoSettings:
     return CognitoSettings()
 @lru_cache()
-def get_DynamoDbConnect() -> DynamoDbConnect:
+def get_DynamoDbSettings() -> DynamoDbConnect:
     return DynamoDbConnect()
 @lru_cache()
 def get_BedrockSettings() -> BedrockSettings:

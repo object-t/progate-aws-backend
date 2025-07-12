@@ -20,16 +20,40 @@
       ],
       "environment": [
         {
+          "name": "AWS_ACCESS_KEY_ID",
+          "value": "<AWS_ACCESS_KEY_ID>"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "value": "<AWS_SECRET_ACCESS_KEY>"
+        },
+        {
+          "name": "DYNAMODB_ENDPOINT",
+          "value": "localhost:8000"
+        },
+        {
+          "name": "AWS_DEFAULT_REGION",
+          "value": "<AWS_DEFAULT_REGION>"
+        },
+        {
           "name": "AWS_REGION",
           "value": "<AWS_REGION>"
         },
         {
-          "name": "COGNITO_USER_POOL_ID",
-          "value": "<COGNITO_USER_POOL_ID>"
+          "name": "REGION",
+          "value": "<REGION>"
         },
         {
-          "name": "COGNITO_CLIENT_ID",
-          "value": "<COGNITO_CLIENT_ID>"
+          "name": "USER_POOL_ID",
+          "value": "<USER_POOL_ID>"
+        },
+        {
+          "name": "APP_CLIENT_ID",
+          "value": "<APP_CLIENT_ID>"
+        },
+        {
+          "name": "BEDROCK_REGION",
+          "value": "<BEDROCK_REGION>"
         },
         {
           "name": "ENVIRONMENT",

@@ -20,6 +20,7 @@ REGION = dynamodbsettings.REGION
 dynamodb = boto3.resource(
     "dynamodb",
     region_name=REGION,
+
 )
 
 table_name = "game"
