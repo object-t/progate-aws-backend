@@ -4,6 +4,8 @@ uv sync
 cp .env.example .env
 ```
 
+ci/cd
+
 # サーバー起動
 Dynamo DBと繋げたり、DockerでFastAPI起動する場合は、
 
