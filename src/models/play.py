@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 class ScenarioSummary(BaseModel):
     scenario_id: str
@@ -42,6 +42,9 @@ class GetGameResponse(BaseModel):
     scenarioes: str
     is_finished: bool
     created_at: str
+
+class UpdateGameRequest(BaseModel):
+    data: Dict[str, Any]
 
 class UpdateGameRequest(BaseModel):
     data: dict
