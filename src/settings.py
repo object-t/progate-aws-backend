@@ -1,30 +1,27 @@
+import os
 from functools import lru_cache
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
 
-class BedrockSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file="../.env", env_file_encoding="utf-8", extra="ignore"
-    )
+# Load environment variables from .env file
+load_dotenv("../.env")
 
-    BEDROCK_REGION: str
+class BedrockSettings:
+    def __init__(self):
+        self.BEDROCK_REGION: str = os.getenv("BEDROCK_REGION", "")
 
-class DynamoDbConnect(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file="../.env", env_file_encoding="utf-8", extra="ignore"
-    )
+class DynamoDbConnect:
+    def __init__(self):
+        self.REGION: str = os.getenv("REGION", "")
 
-    REGION: str
+class LoadRegion:
+    def __init__(self):
+        self.REGION: str = os.getenv("REGION", "")
 
-class LoadRegion(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file="../.env", env_file_encoding="utf-8", extra="ignore"
-    )
-
-    REGION: str
-
-class CognitoSettings(LoadRegion):
-    USERPOOL_ID: str
-    APP_CLIENT_ID: str
+class CognitoSettings:
+    def __init__(self):
+        self.REGION: str = os.getenv("REGION", "")
+        self.USERPOOL_ID: str = os.getenv("USERPOOL_ID", "")
+        self.APP_CLIENT_ID: str = os.getenv("APP_CLIENT_ID", "")
 
 
 
