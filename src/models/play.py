@@ -42,3 +42,10 @@ class GetGameResponse(BaseModel):
     scenarioes: str
     is_finished: bool
     created_at: str
+
+class UpdateGameRequest(BaseModel):
+    data: dict
+
+class GetStructResponse(BaseModel):
+    struct: Optional[dict] = None
+

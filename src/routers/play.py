@@ -5,7 +5,7 @@ from boto3.dynamodb.conditions import Key, Attr
 import uuid
 import json
 from datetime import datetime
-from settings import get_DynamoDbConnect
+from settings import get_DynamoDbConnect, get_BedrockSettings
 from routers.extractor import extract_user_id_from_token
 from routers.costs import get_costs, calculate_final_cost
 from typing import List
@@ -15,12 +15,15 @@ import json
 
 play_router = APIRouter()
 
-settings = get_DynamoDbConnect()
+dynamosettings = get_DynamoDbConnect()
+bedrocksettings = get_BedrockSettings()
 
-DYNAMODB_ENDPOINT = settings.DYNAMODB_ENDPOINT
-REGION = settings.REGION
-AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
+DYNAMODB_ENDPOINT = dynamosettings.DYNAMODB_ENDPOINT
+REGION = dynamosettings.REGION
+AWS_ACCESS_KEY_ID = dynamosettings.AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY = dynamosettings.AWS_SECRET_ACCESS_KEY
+
+BEDROCK_REGION = bedrocksettings.BEDROCK_REGION
 
 dynamodb = boto3.resource(
     "dynamodb",
@@ -42,13 +45,16 @@ async def get_scenarioes(user_id: str):
 # async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
 async def create_game(request: play_models.CreateGameRequest, user_id: str ) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
+    game_name = request.game_name
+
     game_id = str(uuid.uuid4())
     sandbox_id = str(uuid.uuid4())
 
     game_item = {
         "PK": f"user#{user_id}",
         "SK": f"game#{game_id}",
-        "struct": {},
+        "game_name": game_name,
+        "struct": None,
         "funds": 0,
         "current_month": 0,
         "scenarioes": scenarioes,
@@ -71,6 +77,7 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str ) -> 
     formatted_response = {
         "user_id": user_id,
         "game_id": game_id,
+        "game_name": game_name,
         "struct": game_item["struct"],
         "funds": game_item["funds"],
         "current_month": game_item["current_month"],
@@ -146,35 +153,43 @@ async def report_game(game_id: str, user_id: str = "test-user-123"):
     }
 
 @play_router.post("/play/ai/{game_id}")
-async def get_advice_from_ai(
-    game_id: str,
-    user_id: str = Depends(extract_user_id_from_token)
-):
+async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_id_from_token)):
     formatted_user_id = f"user#{user_id}"
 
     response = table.query(
         KeyConditionExpression=Key("PK").eq(formatted_user_id)
         & Key("SK").begins_with("game"),
-        FilterExpression=Attr("is_finished").eq(False),
-        ProjectionExpression="struct"
+        FilterExpression=Attr("is_finished").eq(False)
     )
-    struct = response.get("Items", [{}])[0]
+    game_data = response.get("Items", [{}])[0]
+    struct = game_data.get("struct", {})
 
-    prompt = f"あなたは、AWSのエキスパートです。この{struct}について何かアドバイスをして欲しいです。その際に、メンズコーチジョージのような口調で答えてください。"
+    struct_json = json.dumps(struct, indent=2, ensure_ascii=False)
+    prompt = f"あなたは、AWSのエキスパートです。この構造について何かアドバイスをして欲しいです：\n\n{struct_json}\n\nその際に、メンズコーチジョージのような口調で答えてください。"
 
-    session = boto3.Session(profile_name="default", region_name=REGION)
-    bedrock = session.client(service_name="bedrock-runtime")
+    bedrock = boto3.client(
+        service_name="bedrock-runtime",
+        region_name=BEDROCK_REGION,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
 
     body = json.dumps(
         {
-            "prompt": "\n\nHuman:{0}\n\nAssistant:".format(prompt),
-            "max_tokens_to_sample": 500,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "max_tokens": 500,
             "temperature": 0.1,
             "top_p": 0.9,
+            "anthropic_version": "bedrock-2023-05-31"
         }
     )
 
-    modelId = "anthropic.claude-v2:1"
+    modelId = "us.anthropic.claude-sonnet-4-20250514-v1:0"
     accept = "application/json"
     contentType = "application/json"
 
@@ -183,6 +198,21 @@ async def get_advice_from_ai(
     )
 
     response_body = json.loads(response.get("body").read())
-    answer = response_body.get("completion")
+    answer = response_body["content"][0]["text"]
     return answer
+
+@play_router.put("/play/{game_id}")
+async def update_game(game_id: str, request: play_models.UpdateGameRequest, user_id: str = Depends(extract_user_id_from_token)):
+    pk = f"user#{user_id}"
+    sk = f"game#{game_id}"
+
+    table.update_item(
+        Key={"PK": pk, "SK": sk},
+        UpdateExpression="SET #struct = :data",
+        ExpressionAttributeNames={"#struct": "struct"},
+        ExpressionAttributeValues={":data": request.data}
+    )
+
+    return {"message": "Game data updated successfully"}
+
 

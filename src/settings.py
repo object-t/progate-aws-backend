@@ -1,6 +1,13 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+class BedrockSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
+
+    BEDROCK_REGION: str
+
 class LoadRegion(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
@@ -25,3 +32,6 @@ def get_CognitoSettings() -> CognitoSettings:
 @lru_cache()
 def get_DynamoDbConnect() -> DynamoDbConnect:
     return DynamoDbConnect()
+@lru_cache()
+def get_BedrockSettings() -> BedrockSettings:
+    return BedrockSettings()
