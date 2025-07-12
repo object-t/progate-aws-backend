@@ -23,7 +23,6 @@ def health_check():
     return {"message": "Hello!"}
 
 
-
 app.include_router(play.play_router)
 app.include_router(share.share_router)
 app.include_router(costs.costs_router)

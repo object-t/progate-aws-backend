@@ -6,27 +6,26 @@ import uuid
 from decimal import Decimal
 from routers.extractor import extract_user_id_from_token
 
-from settings import get_DynamoDbConnect
+from settings import get_DynamoDbSettings
 
 costs_router = APIRouter()
 
-settings = get_DynamoDbConnect()
+settings = get_DynamoDbSettings()
 
 REGION = settings.REGION
 
 dynamodb = boto3.resource(
     "dynamodb",
     region_name=REGION,
-
 )
 
 table_name = "game"
 table = dynamodb.Table(table_name)
 
+
 class CostCalculationRequest(BaseModel):
     struct_data: dict
     num_requests: int = 1000
-
 
 
 def calculate_final_cost(struct_data: dict, costs_db: dict, num_requests: int) -> float:
@@ -46,9 +45,10 @@ def calculate_final_cost(struct_data: dict, costs_db: dict, num_requests: int) -
                 monthly_cost += cost
             elif billing_type == "per_request":
                 per_request_cost += cost
-    
+
     final_cost = monthly_cost + (per_request_cost * num_requests)
     return final_cost
+
 
 @costs_router.get("/costs")
 async def get_costs():
@@ -59,37 +59,47 @@ async def get_costs():
 
     return formatted_data
 
+
 @costs_router.post("/calculate")
 async def calculate_cost(request: CostCalculationRequest):
     response = table.query(
         KeyConditionExpression=Key("PK").eq("costs") & Key("SK").begins_with("metadata")
     )
     items = response.get("Items", [])
-    
+
     if not items:
         raise HTTPException(status_code=404, detail="Cost data not found")
-    
+
     costs_db = items[0].get("costs", {})
-    
+
     if not costs_db:
         raise HTTPException(status_code=404, detail="Cost data not found")
-    
-    final_cost = calculate_final_cost(request.struct_data, costs_db, request.num_requests)
+
+    final_cost = calculate_final_cost(
+        request.struct_data, costs_db, request.num_requests
+    )
     resource_types = list(find_resource_types(request.struct_data))
-    
-    monthly_cost = sum(float(costs_db.get(t, {}).get("cost", 0)) for t in resource_types if costs_db.get(t, {}).get("type") == "per_month")
-    request_cost = sum(float(costs_db.get(t, {}).get("cost", 0)) for t in resource_types if costs_db.get(t, {}).get("type") == "per_request") * request.num_requests
-    
+
+    monthly_cost = sum(
+        float(costs_db.get(t, {}).get("cost", 0))
+        for t in resource_types
+        if costs_db.get(t, {}).get("type") == "per_month"
+    )
+    request_cost = (
+        sum(
+            float(costs_db.get(t, {}).get("cost", 0))
+            for t in resource_types
+            if costs_db.get(t, {}).get("type") == "per_request"
+        )
+        * request.num_requests
+    )
+
     return {
         "final_cost": final_cost,
         "num_requests": request.num_requests,
         "resource_types": resource_types,
-        "breakdown": {
-            "monthly_cost": monthly_cost,
-            "request_cost": request_cost
-        }
+        "breakdown": {"monthly_cost": monthly_cost, "request_cost": request_cost},
     }
-
 
 
 def find_resource_types(data):

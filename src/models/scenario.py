@@ -2,27 +2,35 @@ from pydantic import BaseModel
 from typing import List, Optional
 from decimal import Decimal
 
+
 class Feature(BaseModel):
     """フィーチャーモデル"""
+
     id: str
     type: str
     feature: str
     required: List[str]
 
+
 class RequestFeature(BaseModel):
     """リクエストフィーチャーモデル"""
+
     feature_id: str
     request: Optional[int] = None
 
+
 class MonthlyRequest(BaseModel):
     """月別リクエストモデル"""
+
     month: int
     feature: List[RequestFeature]
     funds: int
     description: str
 
+
 class Scenario(BaseModel):
     """シナリオモデル"""
+
     scenario_id: str
     name: str
     end_month: int
@@ -30,8 +38,10 @@ class Scenario(BaseModel):
     features: List[Feature]
     requests: Optional[List[MonthlyRequest]] = None
 
+
 class ScenarioSummary(BaseModel):
     """シナリオサマリーモデル"""
+
     scenario_id: str
     name: str
     end_month: int
@@ -39,8 +49,10 @@ class ScenarioSummary(BaseModel):
     feature_count: int
     created_at: Optional[str] = None
 
+
 class FeatureDetail(BaseModel):
     """フィーチャー詳細モデル"""
+
     feature_id: str
     scenario_id: str
     type: str
@@ -48,16 +60,20 @@ class FeatureDetail(BaseModel):
     required: List[str]
     created_at: Optional[str] = None
 
+
 class MonthData(BaseModel):
     """月データモデル"""
+
     scenario_id: str
     month: int
     feature: List[RequestFeature]
     funds: int
     description: str
 
+
 class CostCalculationResult(BaseModel):
     """コスト計算結果モデル"""
+
     scenario_id: str
     month: int
     total_requests: int
@@ -67,6 +83,7 @@ class CostCalculationResult(BaseModel):
     is_over_budget: bool
     features_used: List[str]
     description: str
+
 
 def convert_decimal_to_int(obj):
     """Decimal型をintに変換するヘルパー関数"""

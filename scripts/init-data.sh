@@ -24,9 +24,6 @@ try:
     db_config = get_DynamoDbConnect()
     dynamodb = boto3.client(
         'dynamodb',
-        endpoint_url=db_config.DYNAMODB_ENDPOINT,
-        aws_access_key_id=db_config.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=db_config.AWS_SECRET_ACCESS_KEY,
         region_name=db_config.REGION
     )
     

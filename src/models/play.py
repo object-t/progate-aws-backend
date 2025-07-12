@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, List, Any
 
+
 class ScenarioSummary(BaseModel):
     scenario_id: str
     name: str
@@ -9,19 +10,24 @@ class ScenarioSummary(BaseModel):
     feature_count: int
     created_at: str
 
+
 class ScenarioDetail(BaseModel):
     scenario: str
     requests: Dict[str, str]
 
+
 class ScenarioesData(BaseModel):
     first_scenario: ScenarioDetail
+
 
 class Scenarioes(BaseModel):
     scenarioes: ScenarioesData
 
+
 class CreateGameRequest(BaseModel):
     scenarioes: str
     game_name: Optional[str] = None
+
 
 class CreateGameResponse(BaseModel):
     user_id: str
@@ -33,6 +39,7 @@ class CreateGameResponse(BaseModel):
     is_finished: bool
     created_at: str
 
+
 class GetGameResponse(BaseModel):
     user_id: str
     game_id: str
@@ -43,12 +50,14 @@ class GetGameResponse(BaseModel):
     is_finished: bool
     created_at: str
 
+
 class UpdateGameRequest(BaseModel):
     data: Dict[str, Any]
+
 
 class UpdateGameRequest(BaseModel):
     data: dict
 
+
 class GetStructResponse(BaseModel):
     struct: Optional[dict] = None
-
