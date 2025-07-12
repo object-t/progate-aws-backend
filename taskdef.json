@@ -29,7 +29,7 @@
         },
         {
           "name": "DYNAMODB_ENDPOINT",
-          "value": "localhost:8000"
+          "value": ""
         },
         {
           "name": "AWS_DEFAULT_REGION",
@@ -44,7 +44,7 @@
           "value": "<REGION>"
         },
         {
-          "name": "USER_POOL_ID",
+          "name": "USERPOOL_ID",
           "value": "<USER_POOL_ID>"
         },
         {
