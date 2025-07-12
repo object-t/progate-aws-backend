@@ -7,7 +7,10 @@ from routers import costs
 
 app = FastAPI()
 
-origins = ["http://localhost:5173"]
+origins = [
+    "http://localhost:5173",
+    "https://dmwfbfheezrkk.cloudfront.net"
+]
 
 app.add_middleware(
     CORSMiddleware,

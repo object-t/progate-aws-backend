@@ -33,7 +33,7 @@
         },
         {
           "name": "USERPOOL_ID",
-          "value": "<USER_POOL_ID>"
+          "value": "<USERPOOL_ID>"
         },
         {
           "name": "APP_CLIENT_ID",
