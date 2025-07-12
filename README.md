@@ -57,7 +57,7 @@ uv add ~~
 uv add --dev ~~
 ```
 
-で追加してください。テストで
+で追加してください。
 
 # Lint and Format
 PR出す前などに、LintやFormat挟んでもらえると助かります。
