@@ -21,8 +21,6 @@ phases:
       - sed -i "s/<AWS_REGION>/$AWS_DEFAULT_REGION/g" taskdef.json
       - sed -i "s/<ENVIRONMENT>/$ENVIRONMENT/g" taskdef.json
       - sed -i "s|<CORS_ORIGINS>|$CORS_ORIGINS|g" taskdef.json
-      - sed -i "s/<AWS_ACCESS_KEY_ID>/$AWS_ACCESS_KEY_ID/g" taskdef.json
-      - sed -i "s/<AWS_SECRET_ACCESS_KEY>/$AWS_SECRET_ACCESS_KEY/g" taskdef.json
       - sed -i "s/<AWS_DEFAULT_REGION>/$AWS_DEFAULT_REGION/g" taskdef.json
       - sed -i "s/<REGION>/$AWS_DEFAULT_REGION/g" taskdef.json
       - sed -i "s/<USER_POOL_ID>/$COGNITO_USER_POOL_ID/g" taskdef.json
