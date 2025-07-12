@@ -32,7 +32,7 @@
           "value": "<REGION>"
         },
         {
-          "name": "USER_POOL_ID",
+          "name": "USERPOOL_ID",
           "value": "<USER_POOL_ID>"
         },
         {
