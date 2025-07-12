@@ -32,16 +32,7 @@ class CostCalculationRequest(BaseModel):
     struct_data: dict
     num_requests: int = 1000
 
-class GameDataRequest(BaseModel):
-    user_id: str = None
-    game_id: str = None
-    struct: dict
-    regional_resources: list = []
-    funds: int = 0
-    current_month: int = 0
-    scenarioes: str = ""
-    is_finished: bool = False
-    created_at: str = ""
+
 
 def calculate_final_cost(struct_data: dict, costs_db: dict, num_requests: int) -> float:
     """
@@ -99,39 +90,7 @@ async def calculate_cost(request: CostCalculationRequest):
         }
     }
 
-@costs_router.post("/calculate-game")
-async def calculate_game_cost(game_data: dict):
-    try:
-        response = table.query(
-            KeyConditionExpression=Key("PK").eq("costs") & Key("SK").begins_with("metadata")
-        )
-        costs_db = response.get("Items", [{}])[0].get("costs", {})
-        
-        if not costs_db:
-            raise HTTPException(status_code=404, detail="Cost data not found")
-        
-        struct_data = game_data.get("struct", {})
-        num_requests = 1000
-        
-        final_cost = calculate_final_cost(struct_data, costs_db, num_requests)
-        resource_types = list(find_resource_types(struct_data))
-        
-        monthly_cost = sum(float(costs_db.get(t, {}).get("cost", 0)) for t in resource_types if costs_db.get(t, {}).get("type") == "per_month")
-        request_cost = sum(float(costs_db.get(t, {}).get("cost", 0)) for t in resource_types if costs_db.get(t, {}).get("type") == "per_request") * num_requests
-        
-        return {
-            "user_id": game_data.get("user_id"),
-            "game_id": game_data.get("game_id"),
-            "final_cost": final_cost,
-            "num_requests": num_requests,
-            "resource_types": resource_types,
-            "breakdown": {
-                "monthly_cost": monthly_cost,
-                "request_cost": request_cost
-            }
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calculating cost: {str(e)}")
+
 
 def find_resource_types(data):
     """structデータからリソースタイプを抽出するヘルパー関数"""
