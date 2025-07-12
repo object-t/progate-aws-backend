@@ -1,29 +1,23 @@
+
+
 from fastapi import APIRouter, HTTPException, Depends, Query
 import models.structure as structure_models
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 import uuid
-import json
 from datetime import datetime
 from settings import get_DynamoDbConnect
 from routers.extractor import extract_user_id_from_token
-from math import ceil
 
 share_router = APIRouter()
 
 dynamosettings = get_DynamoDbConnect()
 
-DYNAMODB_ENDPOINT = dynamosettings.DYNAMODB_ENDPOINT
 REGION = dynamosettings.REGION
-AWS_ACCESS_KEY_ID = dynamosettings.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = dynamosettings.AWS_SECRET_ACCESS_KEY
 
 dynamodb = boto3.resource(
     "dynamodb",
-    endpoint_url=DYNAMODB_ENDPOINT,
     region_name=REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
 table_name = "game"
@@ -33,10 +27,8 @@ table = dynamodb.Table(table_name)
 async def get_shared_structures(page: int = Query(1, ge=1)):
     page_size = 10
     
-    response = table.query(
-        KeyConditionExpression=Key("PK").eq("shared") & Key("SK").begins_with("structure#"),
-        FilterExpression=Attr("is_public").eq(True),
-        ScanIndexForward=False
+    response = table.scan(
+        FilterExpression=Attr("SK").begins_with("sandbox#") & Attr("is_published").eq(True)
     )
     
     items = response.get("Items", [])
@@ -48,13 +40,14 @@ async def get_shared_structures(page: int = Query(1, ge=1)):
     
     structures = []
     for item in page_items:
+        sandbox_id = item["SK"].replace("sandbox#", "")
         structure = structure_models.SharedStructureSummary(
-            structure_id=item["SK"].replace("structure#", ""),
-            title=item.get("title", ""),
+            structure_id=sandbox_id,
+            title=item.get("title", f"Structure {sandbox_id}"),
             description=item.get("description"),
             author_name=item.get("author_name"),
             created_at=item.get("created_at", ""),
-            updated_at=item.get("updated_at", "")
+            updated_at=item.get("updated_at", item.get("created_at", ""))
         )
         structures.append(structure)
     
@@ -70,30 +63,30 @@ async def get_shared_structures(page: int = Query(1, ge=1)):
 
 @share_router.get("/share/structure/{structure_id}", response_model=structure_models.SharedStructure)
 async def get_shared_structure(structure_id: str):
-    response = table.get_item(
-        Key={
-            "PK": "shared",
-            "SK": f"structure#{structure_id}"
-        }
+    response = table.scan(
+        FilterExpression=Attr("SK").eq(f"sandbox#{structure_id}")
     )
     
-    item = response.get("Item")
-    if not item:
+    items = response.get("Items", [])
+    if not items:
         raise HTTPException(status_code=404, detail="Structure not found")
     
-    if not item.get("is_public", True):
-        raise HTTPException(status_code=403, detail="Structure is not public")
+    item = items[0]
+    if not item.get("is_published", False):
+        raise HTTPException(status_code=403, detail="Structure is not published")
+    
+    user_id = item["PK"].replace("user#", "")
     
     return structure_models.SharedStructure(
         structure_id=structure_id,
-        title=item.get("title", ""),
-        data=item.get("data", {}),
+        title=item.get("title", f"Structure {structure_id}"),
+        data=item.get("struct", {}),
         description=item.get("description"),
-        author_id=item.get("author_id", ""),
+        author_id=user_id,
         author_name=item.get("author_name"),
-        is_public=item.get("is_public", True),
+        is_public=item.get("is_published", False),
         created_at=item.get("created_at", ""),
-        updated_at=item.get("updated_at", "")
+        updated_at=item.get("updated_at", item.get("created_at", ""))
     )
 
 @share_router.put("/share/structure/{structure_id}")
@@ -102,10 +95,13 @@ async def update_shared_structure(
     request: structure_models.UpdateSharedStructureRequest,
     user_id: str = Depends(extract_user_id_from_token)
 ):
+    pk = f"user#{user_id}"
+    sk = f"sandbox#{structure_id}"
+    
     response = table.get_item(
         Key={
-            "PK": "shared",
-            "SK": f"structure#{structure_id}"
+            "PK": pk,
+            "SK": sk
         }
     )
     
@@ -113,16 +109,13 @@ async def update_shared_structure(
     if not item:
         raise HTTPException(status_code=404, detail="Structure not found")
     
-    if item.get("author_id") != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this structure")
-    
     table.update_item(
         Key={
-            "PK": "shared",
-            "SK": f"structure#{structure_id}"
+            "PK": pk,
+            "SK": sk
         },
-        UpdateExpression="SET #data = :data, updated_at = :updated_at",
-        ExpressionAttributeNames={"#data": "data"},
+        UpdateExpression="SET #struct = :data, updated_at = :updated_at",
+        ExpressionAttributeNames={"#struct": "struct"},
         ExpressionAttributeValues={
             ":data": request.data,
             ":updated_at": datetime.now().isoformat()
@@ -130,4 +123,32 @@ async def update_shared_structure(
     )
     
     return {"message": "Structure updated successfully"}
+
+@share_router.post("/share/structure", response_model=structure_models.CreateSharedStructureResponse)
+async def create_shared_structure(
+    request: structure_models.CreateSharedStructureRequest,
+    user_id: str = Depends(extract_user_id_from_token)
+):
+    sandbox_id = str(uuid.uuid4())
+    pk = f"user#{user_id}"
+    sk = f"sandbox#{sandbox_id}"
+    
+    sandbox_item = {
+        "PK": pk,
+        "SK": sk,
+        "struct": request.data,
+        "title": request.title,
+        "description": request.description,
+        "is_published": request.is_public,
+        "author_id": user_id,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    table.put_item(Item=sandbox_item)
+    
+    return structure_models.CreateSharedStructureResponse(
+        structure_id=sandbox_id,
+        message="Structure created successfully"
+    )
 

@@ -29,6 +29,10 @@ class CreateSharedStructureRequest(BaseModel):
 class UpdateSharedStructureRequest(BaseModel):
     data: Dict
 
+class CreateSharedStructureResponse(BaseModel):
+    structure_id: str
+    message: str
+
 class SharedStructuresResponse(BaseModel):
     structures: List[SharedStructureSummary]
     total_count: int
