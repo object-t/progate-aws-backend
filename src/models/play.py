@@ -1,5 +1,13 @@
 from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict, List
+
+class ScenarioSummary(BaseModel):
+    scenario_id: str
+    name: str
+    end_month: int
+    current_month: int
+    feature_count: int
+    created_at: str
 
 class ScenarioDetail(BaseModel):
     scenario: str
@@ -13,12 +21,11 @@ class Scenarioes(BaseModel):
 
 class CreateGameRequest(BaseModel):
     scenarioes: str
-    game_name: str
+    game_name: Optional[str] = None
 
 class CreateGameResponse(BaseModel):
     user_id: str
     game_id: str
-    game_name: str
     struct: Optional[dict] = None
     funds: int
     current_month: int
@@ -29,7 +36,6 @@ class CreateGameResponse(BaseModel):
 class GetGameResponse(BaseModel):
     user_id: str
     game_id: str
-    game_name: str
     struct: Optional[dict] = None
     funds: int
     current_month: int

@@ -1,6 +1,10 @@
 """
 シナリオ管理のサービス層
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from fastapi import HTTPException
@@ -26,8 +30,8 @@ class ScenarioService:
     async def get_all_scenarios(self) -> List[ScenarioSummary]:
         """全シナリオの一覧を取得"""
         try:
-            response = self.table.scan(
-                FilterExpression=Attr("PK").begins_with("scenario#") & Attr("SK").eq("metadata")
+            response = self.table.query(
+                KeyConditionExpression=Key("PK").eq("scenario")
             )
             
             scenarios = []
@@ -53,8 +57,8 @@ class ScenarioService:
             # メインシナリオデータを取得
             response = self.table.get_item(
                 Key={
-                    'PK': f'scenario#{scenario_id}',
-                    'SK': 'metadata'
+                    'PK': 'scenario',
+                    'SK': scenario_id
                 }
             )
             
@@ -70,29 +74,9 @@ class ScenarioService:
                 'name': item.get('name', ''),
                 'end_month': item.get('end_month', 0),
                 'current_month': item.get('current_month', 0),
-                'features': item.get('features', [])
+                'features': item.get('features', []),
+                'requests': item.get('requests', []) if include_requests else []
             }
-            
-            # リクエストデータを取得（オプション）
-            if include_requests:
-                request_response = self.table.query(
-                    KeyConditionExpression=Key("PK").eq(f'scenario#{scenario_id}') & Key("SK").begins_with("request#")
-                )
-                
-                requests = []
-                for request_item in request_response.get('Items', []):
-                    request_item = convert_decimal_to_int(request_item)
-                    monthly_request = {
-                        'month': request_item.get('month', 0),
-                        'feature': request_item.get('feature', []),
-                        'funds': request_item.get('funds', 0),
-                        'description': request_item.get('description', '')
-                    }
-                    requests.append(monthly_request)
-                
-                # 月順でソート
-                requests.sort(key=lambda x: x['month'])
-                scenario_data['requests'] = requests
             
             return Scenario(**scenario_data)
             
@@ -104,26 +88,39 @@ class ScenarioService:
     async def get_month_data(self, scenario_id: str, month: int) -> MonthData:
         """指定された月のシナリオデータを取得"""
         try:
+            # シナリオデータを取得
             response = self.table.get_item(
                 Key={
-                    'PK': f'scenario#{scenario_id}',
-                    'SK': f'request#{month:03d}'
+                    'PK': 'scenario',
+                    'SK': scenario_id
                 }
             )
             
             item = response.get('Item')
             if not item:
-                raise HTTPException(status_code=404, detail=f"月 {month} のデータが見つかりません")
+                raise HTTPException(status_code=404, detail="シナリオが見つかりません")
             
             # Decimal型をintに変換
             item = convert_decimal_to_int(item)
             
+            # 指定された月のリクエストデータを検索
+            requests = item.get('requests', [])
+            month_request = None
+            
+            for request in requests:
+                if request.get('month') == month:
+                    month_request = request
+                    break
+            
+            if not month_request:
+                raise HTTPException(status_code=404, detail=f"月 {month} のデータが見つかりません")
+            
             return MonthData(
-                scenario_id=item.get('scenario_id', ''),
-                month=item.get('month', 0),
-                feature=item.get('feature', []),
-                funds=item.get('funds', 0),
-                description=item.get('description', '')
+                scenario_id=scenario_id,
+                month=month_request.get('month', 0),
+                feature=month_request.get('feature', []),
+                funds=month_request.get('funds', 0),
+                description=month_request.get('description', '')
             )
             
         except HTTPException:
@@ -134,25 +131,25 @@ class ScenarioService:
     async def get_feature_by_id(self, feature_id: str) -> FeatureDetail:
         """指定されたフィーチャーの詳細を取得"""
         try:
-            response = self.table.get_item(
-                Key={
-                    'PK': f'feature#{feature_id}',
-                    'SK': 'metadata'
-                }
+            # 全シナリオを検索してフィーチャーを探す
+            response = self.table.query(
+                KeyConditionExpression=Key("PK").eq("scenario")
             )
             
-            item = response.get('Item')
-            if not item:
-                raise HTTPException(status_code=404, detail="フィーチャーが見つかりません")
+            for item in response.get('Items', []):
+                features = item.get('features', [])
+                for feature in features:
+                    if feature.get('id') == feature_id:
+                        return FeatureDetail(
+                            feature_id=feature.get('id', ''),
+                            scenario_id=item.get('scenario_id', ''),
+                            type=feature.get('type', ''),
+                            feature=feature.get('feature', ''),
+                            required=feature.get('required', []),
+                            created_at=item.get('created_at', '')
+                        )
             
-            return FeatureDetail(
-                feature_id=item.get('feature_id', ''),
-                scenario_id=item.get('scenario_id', ''),
-                type=item.get('type', ''),
-                feature=item.get('feature', ''),
-                required=item.get('required', []),
-                created_at=item.get('created_at', '')
-            )
+            raise HTTPException(status_code=404, detail="フィーチャーが見つかりません")
             
         except HTTPException:
             raise

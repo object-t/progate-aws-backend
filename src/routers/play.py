@@ -8,6 +8,9 @@ from datetime import datetime
 from settings import get_BedrockSettings, get_DynamoDbSettings
 from routers.extractor import extract_user_id_from_token
 from routers.costs import get_costs, calculate_final_cost
+from typing import List
+from models.scenario import Scenario, ScenarioSummary, FeatureDetail, MonthData, CostCalculationResult
+from routers.helpers.service import scenario_service
 import json
 
 play_router = APIRouter()
@@ -26,14 +29,10 @@ dynamodb = boto3.resource(
 table_name = "game"
 table = dynamodb.Table(table_name)
 
-@play_router.get("/play/scenarioes")
-async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> play_models.Scenarioes:
-    response = table.query(
-        KeyConditionExpression=Key("PK").eq("entity") & Key("SK").eq("metadata")
-    )
-    formatted_data = response.get("Items", [{}])[0]
-
-    return play_models.Scenarioes(**formatted_data)
+@play_router.get("/play/scenarioes", response_model=List[ScenarioSummary])
+# async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)):
+async def get_scenarioes(user_id: str):
+    return await scenario_service.get_all_scenarios()
 
 @play_router.post("/play/create")
 async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
