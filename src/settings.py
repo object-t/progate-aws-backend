@@ -1,9 +1,5 @@
 import os
 from functools import lru_cache
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv("../.env")
 
 class BedrockSettings:
     def __init__(self):
