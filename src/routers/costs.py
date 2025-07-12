@@ -6,11 +6,11 @@ import uuid
 from decimal import Decimal
 from routers.extractor import extract_user_id_from_token
 
-from settings import get_DynamoDbConnect
+from settings import get_DynamoDbSettings
 
 costs_router = APIRouter()
 
-settings = get_DynamoDbConnect()
+settings = get_DynamoDbSettings()
 
 REGION = settings.REGION
 
