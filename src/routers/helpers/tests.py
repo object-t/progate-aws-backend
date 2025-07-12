@@ -5,7 +5,7 @@ import sys
 import os
 
 # 親ディレクトリをパスに追加
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from main import app
 
@@ -14,7 +14,7 @@ client = TestClient(app)
 class TestScenariosAPI:
     """シナリオ管理APIのテストクラス"""
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_get_scenarios_success(self, mock_table):
         """シナリオ一覧取得の成功テスト"""
         mock_table.scan.return_value = {
@@ -42,7 +42,7 @@ class TestScenariosAPI:
         assert data[0]["name"] == "テストシナリオ"
         assert data[0]["feature_count"] == 2
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_get_scenario_detail_success(self, mock_table):
         """シナリオ詳細取得の成功テスト"""
         # メインデータのモック
@@ -79,7 +79,7 @@ class TestScenariosAPI:
         assert len(data["features"]) == 1
         assert len(data["requests"]) == 1
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_get_scenario_not_found(self, mock_table):
         """存在しないシナリオの取得テスト"""
         mock_table.get_item.return_value = {"Item": None}
@@ -88,7 +88,7 @@ class TestScenariosAPI:
         assert response.status_code == 404
         assert "シナリオが見つかりません" in response.json()["detail"]
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_get_scenario_month_data_success(self, mock_table):
         """月別データ取得の成功テスト"""
         mock_table.get_item.return_value = {
@@ -113,7 +113,7 @@ class TestScenariosAPI:
         assert data["funds"] == 200
         assert len(data["feature"]) == 2
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_get_feature_success(self, mock_table):
         """フィーチャー詳細取得の成功テスト"""
         mock_table.get_item.return_value = {
@@ -163,7 +163,7 @@ class TestScenarioLogic:
 class TestScenarioIntegration:
     """シナリオ統合テストクラス"""
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_scenario_cost_calculation_integration(self, mock_table):
         """シナリオコスト計算の統合テスト"""
         # 月データのモック
@@ -225,7 +225,7 @@ class TestScenarioIntegration:
 class TestScenarioEdgeCases:
     """シナリオエッジケースのテストクラス"""
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_empty_scenarios_list(self, mock_table):
         """空のシナリオリストのテスト"""
         mock_table.scan.return_value = {"Items": []}
@@ -234,7 +234,7 @@ class TestScenarioEdgeCases:
         assert response.status_code == 200
         assert response.json() == []
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_scenario_without_requests(self, mock_table):
         """リクエストデータなしのシナリオテスト"""
         mock_table.get_item.return_value = {
@@ -255,7 +255,7 @@ class TestScenarioEdgeCases:
         data = response.json()
         assert data["requests"] == []
     
-    @patch('scenario.service.scenario_service.table')
+    @patch('routers.helpers.service.scenario_service.table')
     def test_missing_feature_in_cost_calculation(self, mock_table):
         """コスト計算時にフィーチャーが見つからない場合のテスト"""
         # 月データは存在するが、フィーチャーが見つからない

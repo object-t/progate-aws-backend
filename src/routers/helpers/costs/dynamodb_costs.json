@@ -1,0 +1,98 @@
+{
+  "SK": "metadata",
+  "costs": {
+    "rds": {
+      "type": "per_month",
+      "cost": 23.00
+    },
+    "s3": {
+      "type": "per_month",
+      "cost": 5.00
+    },
+    "dynamo_db": {
+      "type": "per_request",
+      "cost": 0.0000015
+    },
+    "nat_gateway": {
+      "type": "per_month",
+      "cost": 32.85
+    },
+    "vpc": {
+      "type": "no_charge",
+      "cost": 0
+    },
+    "cloudfront": {
+      "type": "per_month",
+      "cost": 5.00
+    },
+    "elastic_ip": {
+      "type": "per_month",
+      "cost": 3.65
+    },
+    "public_subnet": {
+      "type": "no_charge",
+      "cost": 0
+    },
+    "route53": {
+      "type": "per_request",
+      "cost": 0.0000005
+    },
+    "lambda": {
+      "type": "per_request",
+      "cost": 0.0000002
+    },
+    "endpoint": {
+      "type": "per_month",
+      "cost": 7.30
+    },
+    "cost_explorer": {
+      "type": "per_request",
+      "cost": 0.01
+    },
+    "ecs": {
+      "type": "no_charge",
+      "cost": 0
+    },
+    "bedrock": {
+      "type": "per_request",
+      "cost": 0.003
+    },
+    "internet_gateway": {
+      "type": "no_charge",
+      "cost": 0
+    },
+    "ec2": {
+      "type": "per_month",
+      "cost": 8.76
+    },
+    "ecr": {
+      "type": "per_month",
+      "cost": 2.50
+    },
+    "private_subnet": {
+      "type": "no_charge",
+      "cost": 0
+    },
+    "az": {
+      "type": "no_charge",
+      "cost": 0
+    },
+    "fargate": {
+      "type": "per_month",
+      "cost": 30.00
+    },
+    "api_gateway": {
+      "type": "per_request",
+      "cost": 0.0000035
+    },
+    "elastic_load_balancer": {
+      "type": "per_month",
+      "cost": 22.27
+    },
+    "elasticache": {
+      "type": "per_month",
+      "cost": 13.14
+    }
+  },
+  "PK": "costs"
+}
