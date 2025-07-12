@@ -19,10 +19,7 @@ class ScenarioService:
         settings = get_DynamoDbConnect()
         self.dynamodb = boto3.resource(
             "dynamodb",
-            endpoint_url=settings.DYNAMODB_ENDPOINT,
             region_name=settings.REGION,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
         self.table = self.dynamodb.Table("game")
     
