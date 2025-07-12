@@ -202,3 +202,18 @@ async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_i
     answer = response_body["content"][0]["text"]
     return answer
 
+@play_router.put("/play/{game_id}")
+async def update_game(game_id: str, request: play_models.UpdateGameRequest, user_id: str = Depends(extract_user_id_from_token)):
+    pk = f"user#{user_id}"
+    sk = f"game#{game_id}"
+
+    table.update_item(
+        Key={"PK": pk, "SK": sk},
+        UpdateExpression="SET #struct = :data",
+        ExpressionAttributeNames={"#struct": "struct"},
+        ExpressionAttributeValues={":data": request.data}
+    )
+
+    return {"message": "Game data updated successfully"}
+
+
