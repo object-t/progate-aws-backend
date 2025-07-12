@@ -15,19 +15,13 @@ play_router = APIRouter()
 dynamosettings = get_DynamoDbConnect()
 bedrocksettings = get_BedrockSettings()
 
-DYNAMODB_ENDPOINT = dynamosettings.DYNAMODB_ENDPOINT
 REGION = dynamosettings.REGION
-AWS_ACCESS_KEY_ID = dynamosettings.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = dynamosettings.AWS_SECRET_ACCESS_KEY
 
 BEDROCK_REGION = bedrocksettings.BEDROCK_REGION
 
 dynamodb = boto3.resource(
     "dynamodb",
-    endpoint_url=DYNAMODB_ENDPOINT,
-    region_name=REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=REGION
 )
 
 table_name = "game"
@@ -170,9 +164,7 @@ async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_i
 
     bedrock = boto3.client(
         service_name="bedrock-runtime",
-        region_name=BEDROCK_REGION,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+        region_name=BEDROCK_REGION
     )
 
     body = json.dumps(
