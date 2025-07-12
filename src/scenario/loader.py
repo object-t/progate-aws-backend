@@ -38,10 +38,7 @@ def get_dynamodb_connection():
         endpoint_url = settings.DYNAMODB_ENDPOINT.replace('dynamodb-local', 'localhost')
         return boto3.resource(
             "dynamodb",
-            endpoint_url=endpoint_url,
             region_name=settings.REGION,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
     except Exception:
         # 設定ファイルが使えない場合はデフォルト値を使用

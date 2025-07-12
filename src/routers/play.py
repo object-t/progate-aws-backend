@@ -5,23 +5,22 @@ from boto3.dynamodb.conditions import Key, Attr
 import uuid
 import json
 from datetime import datetime
-from settings import get_DynamoDbConnect, get_BedrockSettings
+from settings import get_BedrockSettings, get_DynamoDbConnect
 from routers.extractor import extract_user_id_from_token
 from routers.costs import get_costs, calculate_final_cost
 import json
 
 play_router = APIRouter()
-
-dynamosettings = get_DynamoDbConnect()
 bedrocksettings = get_BedrockSettings()
-
-REGION = dynamosettings.REGION
+dynamodbsettings = get_DynamoDbConnect()
 
 BEDROCK_REGION = bedrocksettings.BEDROCK_REGION
+REGION = dynamodbsettings.REGION
 
 dynamodb = boto3.resource(
     "dynamodb",
-    region_name=REGION
+    region_name=REGION,
+
 )
 
 table_name = "game"
@@ -37,8 +36,7 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> 
     return play_models.Scenarioes(**formatted_data)
 
 @play_router.post("/play/create")
-# async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
-async def create_game(request: play_models.CreateGameRequest, user_id: str) -> play_models.CreateGameResponse:
+async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
     game_name = request.game_name
 
@@ -160,11 +158,26 @@ async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_i
     struct = game_data.get("struct", {})
 
     struct_json = json.dumps(struct, indent=2, ensure_ascii=False)
-    prompt = f"あなたは、AWSのエキスパートです。この構造について何かアドバイスをして欲しいです：\n\n{struct_json}\n\nその際に、メンズコーチジョージのような口調で答えてください。"
+    prompt = f"""
+        あなたはAWS Bedrockのマジエキスパートです。
+        今からマジで構造見せるから、ガチで“危機感持って”厳しくアドバイスをください：
+
+        {struct_json}
+
+        - 無駄ってことない？
+        - この設計、お前最後に見直したのいつ？
+        - セキュリティとか可用性、甘く見てるんじゃない？
+        - レイテンシ最適化とか、Guardrails使ってる？
+        - リトリーバルやファインチューンの戦略、甘いって。
+        - ここ直さないとあとで地獄見るぞ。
+
+        親友としてガチで叱って、でも腹落ちするように助けてくれ。
+        ヤバいくらい“刺さる”口調で頼む。
+        """
 
     bedrock = boto3.client(
         service_name="bedrock-runtime",
-        region_name=BEDROCK_REGION
+        region_name=BEDROCK_REGION,
     )
 
     body = json.dumps(
