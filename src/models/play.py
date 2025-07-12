@@ -40,3 +40,6 @@ class GetGameResponse(BaseModel):
 class UpdateGameRequest(BaseModel):
     data: dict
 
+class GetStructResponse(BaseModel):
+    struct: Optional[dict] = None
+

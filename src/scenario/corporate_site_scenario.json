@@ -1,0 +1,144 @@
+{
+    "scenario_id": "corporate-site-001",
+    "end_month": 36,
+    "current_month": 0,
+    "name": "公式企業サイト",
+    "features": [
+        {
+            "id": "corp-web-001",
+            "type": "compute",
+            "feature": "Webサイト",
+            "required": ["compute", "storage"]
+        },
+        {
+            "id": "corp-domain-001",
+            "type": "domain",
+            "feature": "企業ドメイン",
+            "required": ["www.example.com", "example.com"]
+        },
+        {
+            "id": "corp-db-001",
+            "type": "database",
+            "feature": "顧客データベース",
+            "required": ["database"]
+        },
+        {
+            "id": "corp-cdn-001",
+            "type": "cdn",
+            "feature": "コンテンツ配信",
+            "required": ["cdn"]
+        },
+        {
+            "id": "corp-security-001",
+            "type": "security",
+            "feature": "セキュリティ対策",
+            "required": ["waf", "ssl"]
+        }
+    ],
+    "requests": [
+        {
+            "month": 0,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 1000
+                },
+                {
+                    "feature_id": "corp-domain-001"
+                }
+            ],
+            "funds": 100,
+            "description": "企業ページを閲覧したい"
+        },
+        {
+            "month": 1,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 10000
+                },
+                {
+                    "feature_id": "corp-domain-001"
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 500
+                }
+            ],
+            "funds": 200,
+            "description": "アクセス数が増加し、顧客データの管理が必要になりました"
+        },
+        {
+            "month": 3,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 25000
+                },
+                {
+                    "feature_id": "corp-domain-001"
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 2000
+                },
+                {
+                    "feature_id": "corp-cdn-001",
+                    "request": 15000
+                }
+            ],
+            "funds": 500,
+            "description": "事業拡大により大幅なアクセス増加、CDNが必要"
+        },
+        {
+            "month": 6,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 50000
+                },
+                {
+                    "feature_id": "corp-domain-001"
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 5000
+                },
+                {
+                    "feature_id": "corp-cdn-001",
+                    "request": 40000
+                },
+                {
+                    "feature_id": "corp-security-001"
+                }
+            ],
+            "funds": 1000,
+            "description": "セキュリティ強化が必要な規模に成長"
+        },
+        {
+            "month": 12,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 100000
+                },
+                {
+                    "feature_id": "corp-domain-001"
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 10000
+                },
+                {
+                    "feature_id": "corp-cdn-001",
+                    "request": 80000
+                },
+                {
+                    "feature_id": "corp-security-001"
+                }
+            ],
+            "funds": 2000,
+            "description": "大規模企業サイトとして安定運用"
+        }
+    ]
+}
