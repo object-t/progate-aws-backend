@@ -1,0 +1,53 @@
+{
+  "family": "fastapi-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "fastapi",
+      "image": "<IMAGE1_URI>",
+      "essential": true,
+      "cpu": 256,
+      "memory": 512,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "AWS_REGION",
+          "value": "<AWS_REGION>"
+        },
+        {
+          "name": "COGNITO_USER_POOL_ID",
+          "value": "<COGNITO_USER_POOL_ID>"
+        },
+        {
+          "name": "COGNITO_CLIENT_ID",
+          "value": "<COGNITO_CLIENT_ID>"
+        },
+        {
+          "name": "ENVIRONMENT",
+          "value": "<ENVIRONMENT>"
+        },
+        {
+          "name": "CORS_ORIGINS",
+          "value": "<CORS_ORIGINS>"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/logs/terraform/fastapi",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "terraform"
+        }
+      }
+    }
+  ]
+}
