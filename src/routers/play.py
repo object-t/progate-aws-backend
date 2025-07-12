@@ -5,14 +5,14 @@ from boto3.dynamodb.conditions import Key, Attr
 import uuid
 import json
 from datetime import datetime
-from settings import get_BedrockSettings, get_DynamoDbConnect
+from settings import get_BedrockSettings, get_DynamoDbSettings
 from routers.extractor import extract_user_id_from_token
 from routers.costs import get_costs, calculate_final_cost
 import json
 
 play_router = APIRouter()
 bedrocksettings = get_BedrockSettings()
-dynamodbsettings = get_DynamoDbConnect()
+dynamodbsettings = get_DynamoDbSettings()
 
 BEDROCK_REGION = bedrocksettings.BEDROCK_REGION
 REGION = dynamodbsettings.REGION
