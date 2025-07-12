@@ -40,15 +40,12 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> 
 @play_router.post("/play/create")
 async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
-    game_name = request.game_name
-
     game_id = str(uuid.uuid4())
     sandbox_id = str(uuid.uuid4())
 
     game_item = {
         "PK": f"user#{user_id}",
         "SK": f"game#{game_id}",
-        "game_name": game_name,
         "struct": None,
         "funds": 0,
         "current_month": 0, 
@@ -72,7 +69,6 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
     formatted_response = {
         "user_id": user_id,
         "game_id": game_id,
-        "game_name": game_name,
         "struct": game_item["struct"],
         "funds": game_item["funds"],
         "current_month": game_item["current_month"],
@@ -96,7 +92,6 @@ async def get_game(user_id: str = Depends(extract_user_id_from_token)) -> play_m
     formatted_response = {
         "user_id": game_data.get("PK", "").replace("user#", ""),
         "game_id": game_data.get("SK", "").replace("game#", ""),
-        "game_name": game_data.get("game_name"),
         "struct": game_data.get("struct"),
         "funds": game_data.get("funds"),
         "current_month": game_data.get("current_month"),
@@ -107,49 +102,43 @@ async def get_game(user_id: str = Depends(extract_user_id_from_token)) -> play_m
 
     return play_models.GetGameResponse(**formatted_response)
 
-@play_router.post("play/ai/{game_id}")
-async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_id_from_token)):
-
+@play_router.post("/play/ai/{game_id}")
+async def get_advice_from_ai(
+    game_id: str,
+    user_id: str = Depends(extract_user_id_from_token)
+):
     formatted_user_id = f"user#{user_id}"
 
     response = table.query(
-        KeyConditionExpression=Key("PK").eq(formatted_user_id) & Key("SK").begins_with("game"),
-        FilterExpression=Attr("is_finished").eq(False)
+        KeyConditionExpression=Key("PK").eq(formatted_user_id)
+        & Key("SK").begins_with("game"),
+        FilterExpression=Attr("is_finished").eq(False),
+        ProjectionExpression="struct"
     )
-    game_data = response.get("Items", [{}])[0]
-    
-    formatted_response = {
-        "user_id": game_data.get("PK", "").replace("user#", ""),
-        "game_id": game_data.get("SK", "").replace("game#", ""),
-        "game_name": game_data.get("game_name"),
-        "struct": game_data.get("struct"),
-        "funds": game_data.get("funds"),
-        "current_month": game_data.get("current_month"),
-        "scenarioes": game_data.get("scenarioes"),
-        "is_finished": game_data.get("is_finished"),
-        "created_at": game_data.get("created_at")
-    }
+    struct = response.get("Items", [{}])[0]
 
-    struct = formatted_response.struct
+    prompt = f"あなたは、AWSのエキスパートです。この{struct}について何かアドバイスをして欲しいです。その際に、メンズコーチジョージのような口調で答えてください。"
 
-    prompt = f"あなたは、AWSのエキスパートです。この{struct}はawsのアーキテクチャ図を表しています。これを元にこのアーキテクチャ図に対してアドバイスをしてください。"
+    session = boto3.Session(profile_name="default", region_name=REGION)
+    bedrock = session.client(service_name="bedrock-runtime")
 
-    session = boto3.Session(profile_name='bedrock', region_name=REGION)
-    bedrock = session.client(service_name='bedrock-runtime')
+    body = json.dumps(
+        {
+            "prompt": "\n\nHuman:{0}\n\nAssistant:".format(prompt),
+            "max_tokens_to_sample": 500,
+            "temperature": 0.1,
+            "top_p": 0.9,
+        }
+    )
 
-    body = json.dumps({
-        'prompt': '\n\nHuman:{0}\n\nAssistant:'.format(prompt),
-        'max_tokens_to_sample': 500,
-        'temperature': 0.1,
-        'top_p': 0.9
-    })
-                    
-    modelId = 'anthropic.claude-v2'
-    accept = 'application/json'
-    contentType = 'application/json'
+    modelId = "anthropic.claude-v2:1"
+    accept = "application/json"
+    contentType = "application/json"
 
-    response = bedrock.invoke_model(body=body, modelId=modelId, accept=accept, contentType=contentType)
+    response = bedrock.invoke_model(
+        body=body, modelId=modelId, accept=accept, contentType=contentType
+    )
 
-    response_body = json.loads(response.get('body').read())
-    answer = response_body.get('completion')
+    response_body = json.loads(response.get("body").read())
+    answer = response_body.get("completion")
     return answer
