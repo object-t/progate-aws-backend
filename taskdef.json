@@ -20,18 +20,6 @@
       ],
       "environment": [
         {
-          "name": "AWS_ACCESS_KEY_ID",
-          "value": "<AWS_ACCESS_KEY_ID>"
-        },
-        {
-          "name": "AWS_SECRET_ACCESS_KEY",
-          "value": "<AWS_SECRET_ACCESS_KEY>"
-        },
-        {
-          "name": "DYNAMODB_ENDPOINT",
-          "value": "dynamodb.ap-northeast-1.amazonaws.com"
-        },
-        {
           "name": "AWS_DEFAULT_REGION",
           "value": "<AWS_DEFAULT_REGION>"
         },
