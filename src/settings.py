@@ -8,6 +8,13 @@ class BedrockSettings(BaseSettings):
 
     BEDROCK_REGION: str
 
+class DynamoDbConnect(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
+
+    REGION: str
+
 class LoadRegion(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
@@ -18,11 +25,6 @@ class LoadRegion(BaseSettings):
 class CognitoSettings(LoadRegion):
     USERPOOL_ID: str
     APP_CLIENT_ID: str
-
-class DynamoDbConnect(LoadRegion):
-    DYNAMODB_ENDPOINT: str
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
 
 
 

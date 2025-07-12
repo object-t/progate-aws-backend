@@ -12,17 +12,11 @@ costs_router = APIRouter()
 
 settings = get_DynamoDbConnect()
 
-DYNAMODB_ENDPOINT = settings.DYNAMODB_ENDPOINT
 REGION = settings.REGION
-AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
 
 dynamodb = boto3.resource(
     "dynamodb",
-    endpoint_url=DYNAMODB_ENDPOINT,
     region_name=REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
 table_name = "game"
