@@ -69,7 +69,12 @@ async def calculate_cost(request: CostCalculationRequest):
     response = table.query(
         KeyConditionExpression=Key("PK").eq("costs") & Key("SK").begins_with("metadata")
     )
-    costs_db = response.get("Items", [{}])[0].get("costs", {})
+    items = response.get("Items", [])
+    
+    if not items:
+        raise HTTPException(status_code=404, detail="Cost data not found")
+    
+    costs_db = items[0].get("costs", {})
     
     if not costs_db:
         raise HTTPException(status_code=404, detail="Cost data not found")
