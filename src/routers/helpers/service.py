@@ -14,13 +14,13 @@ from models.scenario import (
     FeatureDetail, MonthData, CostCalculationResult,
     convert_decimal_to_int
 )
-from settings import get_DynamoDbConnect
+from settings import get_DynamoDbSettings
 
 class ScenarioService:
     """シナリオ管理サービス"""
     
     def __init__(self):
-        settings = get_DynamoDbConnect()
+        settings = get_DynamoDbSettings()
         self.dynamodb = boto3.resource(
             "dynamodb",
             region_name=settings.REGION,
