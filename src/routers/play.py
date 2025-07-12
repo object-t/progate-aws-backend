@@ -7,6 +7,8 @@ import json
 from datetime import datetime
 from settings import get_DynamoDbConnect, get_BedrockSettings
 from routers.extractor import extract_user_id_from_token
+from routers.costs import get_costs, calculate_final_cost
+import json
 
 play_router = APIRouter()
 
@@ -41,7 +43,8 @@ async def get_scenarioes(user_id: str = Depends(extract_user_id_from_token)) -> 
     return play_models.Scenarioes(**formatted_data)
 
 @play_router.post("/play/create")
-async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
+# async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_from_token)) -> play_models.CreateGameResponse:
+async def create_game(request: play_models.CreateGameRequest, user_id: str) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
     game_name = request.game_name
 
@@ -70,7 +73,7 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
         "created_at": datetime.now().isoformat(),
     }
 
-    table.put_item(Item=sandbox_item)   
+    table.put_item(Item=sandbox_item)
 
     formatted_response = {
         "user_id": user_id,
@@ -108,6 +111,47 @@ async def get_game(user_id: str = Depends(extract_user_id_from_token)) -> play_m
     }
 
     return play_models.GetGameResponse(**formatted_response)
+
+@play_router.post("/play/report/{game_id}")
+async def report_game(game_id: str, user_id: str = "test-user-123"):
+    formatted_user_id = f"user#{user_id}"
+    formatted_game_id = f"game#{game_id}"
+    response = table.query(
+        KeyConditionExpression=Key("PK").eq(formatted_user_id) & Key("SK").begins_with(formatted_game_id)
+    )
+    game_data = response.get("Items", [{}])[0]
+    struct_data = game_data.get("struct", {})
+    current_month = game_data.get("current_month", 0)
+    scenario_name = game_data.get("scenarioes", "")
+
+    # シナリオファイルを読み込み
+    scenario_data = None
+    if scenario_name == "個人ブログ":
+        with open("/app/personal_blog_scenario.json", "r", encoding="utf-8") as f:
+            scenario_data = json.load(f)
+    else:
+        with open("/app/scenarioes.json", "r", encoding="utf-8") as f:
+            scenario_data = json.load(f)
+
+    # 現在の月のリクエスト数を取得
+    total_requests = 0
+    if scenario_data and "requests" in scenario_data:
+        for request_data in scenario_data["requests"]:
+            if request_data["month"] == current_month:
+                for feature in request_data.get("feature", []):
+                    if "request" in feature:
+                        total_requests += feature["request"]
+                break
+
+    costs_db = await get_costs()
+    final_cost = calculate_final_cost(struct_data, costs_db, total_requests)
+
+    return {
+        "message": "Report processed", 
+        "calculated_cost": final_cost,
+        "current_month": current_month,
+        "total_requests": total_requests
+    }
 
 @play_router.post("/play/ai/{game_id}")
 async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_id_from_token)):
@@ -157,3 +201,4 @@ async def get_advice_from_ai(game_id: str, user_id: str = Depends(extract_user_i
     response_body = json.loads(response.get("body").read())
     answer = response_body["content"][0]["text"]
     return answer
+

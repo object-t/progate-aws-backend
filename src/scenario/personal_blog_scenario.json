@@ -1,0 +1,208 @@
+{
+    "scenario_id": "personal-blog-001",
+    "end_month": 12,
+    "current_month": 0,
+    "name": "個人ブログ",
+    "features": [
+        {
+            "id": "blog-web-001",
+            "type": "compute",
+            "feature": "ブログサイト",
+            "required": ["compute", "storage"]
+        },
+        {
+            "id": "blog-domain-001",
+            "type": "domain",
+            "feature": "個人ドメイン",
+            "required": ["myblog.com"]
+        },
+        {
+            "id": "blog-db-001",
+            "type": "database",
+            "feature": "記事データベース",
+            "required": ["database"]
+        },
+        {
+            "id": "blog-cdn-001",
+            "type": "cdn",
+            "feature": "画像配信",
+            "required": ["cdn"]
+        }
+    ],
+    "requests": [
+        {
+            "month": 0,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 100
+                },
+                {
+                    "feature_id": "blog-domain-001"
+                }
+            ],
+            "funds": 5,
+            "description": "ブログを開始、友人や家族が閲覧"
+        },
+        {
+            "month": 1,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 300
+                },
+                {
+                    "feature_id": "blog-db-001"
+                }
+            ],
+            "funds": 8,
+            "description": "記事を増やし、検索エンジンからの流入開始"
+        },
+        {
+            "month": 2,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 800
+                }
+            ],
+            "funds": 10,
+            "description": "SNSでシェアされ、アクセス数増加"
+        },
+        {
+            "month": 3,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 1500
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 500
+                }
+            ],
+            "funds": 12,
+            "description": "画像コンテンツ増加、CDN導入検討"
+        },
+        {
+            "month": 4,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 2200
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 800
+                }
+            ],
+            "funds": 15,
+            "description": "人気記事がバズり、アクセス急増"
+        },
+        {
+            "month": 5,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 3000
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 1200
+                }
+            ],
+            "funds": 18,
+            "description": "定期読者が増加、安定したトラフィック"
+        },
+        {
+            "month": 6,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 4500
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 1800
+                }
+            ],
+            "funds": 22,
+            "description": "半年記念記事が話題に、大幅アクセス増"
+        },
+        {
+            "month": 7,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 3800
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 1500
+                }
+            ],
+            "funds": 20,
+            "description": "夏休み期間でアクセス若干減少"
+        },
+        {
+            "month": 8,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 5200
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 2000
+                }
+            ],
+            "funds": 25,
+            "description": "新学期・新シーズン記事で再びアクセス増"
+        },
+        {
+            "month": 9,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 6000
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 2400
+                }
+            ],
+            "funds": 28,
+            "description": "年末に向けて記事投稿頻度アップ"
+        },
+        {
+            "month": 10,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 7500
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 3000
+                }
+            ],
+            "funds": 30,
+            "description": "年末特集記事が大ヒット"
+        },
+        {
+            "month": 11,
+            "feature": [
+                {
+                    "feature_id": "blog-web-001",
+                    "request": 8000
+                },
+                {
+                    "feature_id": "blog-cdn-001",
+                    "request": 3200
+                }
+            ],
+            "funds": 35,
+            "description": "1年間の総まとめ記事で最高アクセス達成"
+        }
+    ]
+}
