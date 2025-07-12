@@ -33,3 +33,6 @@ class GetGameResponse(BaseModel):
     scenarioes: str
     is_finished: bool
     created_at: str
+
+class GetStructResponse(BaseModel):
+    struct: Optional[dict] = None

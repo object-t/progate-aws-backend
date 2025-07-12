@@ -100,3 +100,26 @@ async def get_game(user_id: str = Depends(extract_user_id_from_token)) -> play_m
     }
 
     return play_models.GetGameResponse(**formatted_response)
+
+@play_router.get("/play/{game_id}")
+async def get_game_by_id(game_id: str, user_id: str = Depends(extract_user_id_from_token)) -> play_models.GetGameResponse:
+    formatted_user_id = f"user#{user_id}"
+    formatted_game_id = f"game#{game_id}"
+
+    response = table.get_item(
+        Key={
+            "PK": formatted_user_id,
+            "SK": formatted_game_id
+        }
+    )
+
+    game_data = response.get("Item", {})
+
+    if not game_data:
+        return play_models.GetGameResponse(message="Game not found")
+
+    formatted_response = {
+        "struct": game_data.get("struct")
+    }
+
+    return play_models.GetGameResponse(**formatted_response)
