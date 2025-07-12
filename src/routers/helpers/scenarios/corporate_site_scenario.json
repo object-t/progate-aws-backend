@@ -1,6 +1,6 @@
 {
     "scenario_id": "corporate-site-001",
-    "end_month": 36,
+    "end_month": 24,
     "current_month": 0,
     "name": "公式企業サイト",
     "features": [
@@ -23,16 +23,22 @@
             "required": ["database"]
         },
         {
-            "id": "corp-cdn-001",
-            "type": "cdn",
-            "feature": "コンテンツ配信",
-            "required": ["cdn"]
+            "id": "corp-storage-001",
+            "type": "storage",
+            "feature": "ファイル・画像保存",
+            "required": ["storage"]
         },
         {
-            "id": "corp-security-001",
-            "type": "security",
-            "feature": "セキュリティ対策",
-            "required": ["waf", "ssl"]
+            "id": "corp-compute-001",
+            "type": "compute",
+            "feature": "業務システム処理",
+            "required": ["compute"]
+        },
+        {
+            "id": "corp-backup-001",
+            "type": "storage",
+            "feature": "データバックアップ",
+            "required": ["storage", "database"]
         }
     ],
     "requests": [
@@ -41,32 +47,57 @@
             "feature": [
                 {
                     "feature_id": "corp-web-001",
-                    "request": 1000
+                    "request": 5000
                 },
                 {
-                    "feature_id": "corp-domain-001"
+                    "feature_id": "corp-domain-001",
+                    "request": 1000
                 }
             ],
-            "funds": 100,
-            "description": "企業ページを閲覧したい"
+            "funds": 150,
+            "description": "企業サイト立ち上げ、基本的なWebサイトとドメイン設定"
         },
         {
             "month": 1,
             "feature": [
                 {
                     "feature_id": "corp-web-001",
-                    "request": 10000
+                    "request": 12000
                 },
                 {
-                    "feature_id": "corp-domain-001"
+                    "feature_id": "corp-domain-001",
+                    "request": 2000
+                },
+                {
+                    "feature_id": "corp-storage-001",
+                    "request": 3000
+                }
+            ],
+            "funds": 250,
+            "description": "コンテンツ増加、ファイル保存機能追加"
+        },
+        {
+            "month": 2,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 18000
+                },
+                {
+                    "feature_id": "corp-domain-001",
+                    "request": 3000
                 },
                 {
                     "feature_id": "corp-db-001",
-                    "request": 500
+                    "request": 5000
+                },
+                {
+                    "feature_id": "corp-storage-001",
+                    "request": 4500
                 }
             ],
-            "funds": 200,
-            "description": "アクセス数が増加し、顧客データの管理が必要になりました"
+            "funds": 350,
+            "description": "顧客データベース導入、本格的なデータ管理開始"
         },
         {
             "month": 3,
@@ -76,44 +107,82 @@
                     "request": 25000
                 },
                 {
-                    "feature_id": "corp-domain-001"
+                    "feature_id": "corp-domain-001",
+                    "request": 4000
                 },
                 {
                     "feature_id": "corp-db-001",
-                    "request": 2000
+                    "request": 8000
                 },
                 {
-                    "feature_id": "corp-cdn-001",
-                    "request": 15000
+                    "feature_id": "corp-storage-001",
+                    "request": 6000
+                },
+                {
+                    "feature_id": "corp-compute-001",
+                    "request": 5000
                 }
             ],
             "funds": 500,
-            "description": "事業拡大により大幅なアクセス増加、CDNが必要"
+            "description": "業務システム処理開始、事業拡大"
         },
         {
             "month": 6,
             "feature": [
                 {
                     "feature_id": "corp-web-001",
-                    "request": 50000
+                    "request": 45000
                 },
                 {
-                    "feature_id": "corp-domain-001"
+                    "feature_id": "corp-domain-001",
+                    "request": 7000
                 },
                 {
                     "feature_id": "corp-db-001",
-                    "request": 5000
+                    "request": 15000
                 },
                 {
-                    "feature_id": "corp-cdn-001",
-                    "request": 40000
+                    "feature_id": "corp-storage-001",
+                    "request": 12000
                 },
                 {
-                    "feature_id": "corp-security-001"
+                    "feature_id": "corp-compute-001",
+                    "request": 10000
                 }
             ],
-            "funds": 1000,
-            "description": "セキュリティ強化が必要な規模に成長"
+            "funds": 800,
+            "description": "半年で大幅成長、全機能でスケールアップ"
+        },
+        {
+            "month": 9,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 70000
+                },
+                {
+                    "feature_id": "corp-domain-001",
+                    "request": 12000
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 25000
+                },
+                {
+                    "feature_id": "corp-storage-001",
+                    "request": 20000
+                },
+                {
+                    "feature_id": "corp-compute-001",
+                    "request": 18000
+                },
+                {
+                    "feature_id": "corp-backup-001",
+                    "request": 5000
+                }
+            ],
+            "funds": 1200,
+            "description": "本格的な企業規模、データバックアップ開始"
         },
         {
             "month": 12,
@@ -123,22 +192,152 @@
                     "request": 100000
                 },
                 {
-                    "feature_id": "corp-domain-001"
+                    "feature_id": "corp-domain-001",
+                    "request": 18000
                 },
                 {
                     "feature_id": "corp-db-001",
-                    "request": 10000
+                    "request": 35000
                 },
                 {
-                    "feature_id": "corp-cdn-001",
+                    "feature_id": "corp-storage-001",
+                    "request": 30000
+                },
+                {
+                    "feature_id": "corp-compute-001",
+                    "request": 25000
+                },
+                {
+                    "feature_id": "corp-backup-001",
+                    "request": 8000
+                }
+            ],
+            "funds": 1800,
+            "description": "1年目達成、安定した大規模運用"
+        },
+        {
+            "month": 15,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 150000
+                },
+                {
+                    "feature_id": "corp-domain-001",
+                    "request": 25000
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 50000
+                },
+                {
+                    "feature_id": "corp-storage-001",
+                    "request": 45000
+                },
+                {
+                    "feature_id": "corp-compute-001",
+                    "request": 35000
+                },
+                {
+                    "feature_id": "corp-backup-001",
+                    "request": 12000
+                }
+            ],
+            "funds": 2500,
+            "description": "国際展開開始、全機能で大幅スケールアップ"
+        },
+        {
+            "month": 18,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 200000
+                },
+                {
+                    "feature_id": "corp-domain-001",
+                    "request": 35000
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 70000
+                },
+                {
+                    "feature_id": "corp-storage-001",
+                    "request": 60000
+                },
+                {
+                    "feature_id": "corp-compute-001",
+                    "request": 50000
+                },
+                {
+                    "feature_id": "corp-backup-001",
+                    "request": 18000
+                }
+            ],
+            "funds": 3200,
+            "description": "大企業規模、高可用性が必要なレベル"
+        },
+        {
+            "month": 21,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 280000
+                },
+                {
+                    "feature_id": "corp-domain-001",
+                    "request": 45000
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 90000
+                },
+                {
+                    "feature_id": "corp-storage-001",
                     "request": 80000
                 },
                 {
-                    "feature_id": "corp-security-001"
+                    "feature_id": "corp-compute-001",
+                    "request": 70000
+                },
+                {
+                    "feature_id": "corp-backup-001",
+                    "request": 25000
                 }
             ],
-            "funds": 2000,
-            "description": "大規模企業サイトとして安定運用"
+            "funds": 4000,
+            "description": "グローバル企業として成長、エンタープライズ級"
+        },
+        {
+            "month": 23,
+            "feature": [
+                {
+                    "feature_id": "corp-web-001",
+                    "request": 350000
+                },
+                {
+                    "feature_id": "corp-domain-001",
+                    "request": 60000
+                },
+                {
+                    "feature_id": "corp-db-001",
+                    "request": 120000
+                },
+                {
+                    "feature_id": "corp-storage-001",
+                    "request": 100000
+                },
+                {
+                    "feature_id": "corp-compute-001",
+                    "request": 90000
+                },
+                {
+                    "feature_id": "corp-backup-001",
+                    "request": 35000
+                }
+            ],
+            "funds": 5000,
+            "description": "2年目達成、最大規模での安定運用"
         }
     ]
 }

@@ -11,22 +11,22 @@
             "required": ["compute", "storage"]
         },
         {
-            "id": "blog-domain-001",
-            "type": "domain",
-            "feature": "個人ドメイン",
-            "required": ["myblog.com"]
-        },
-        {
             "id": "blog-db-001",
             "type": "database",
             "feature": "記事データベース",
             "required": ["database"]
         },
         {
-            "id": "blog-cdn-001",
-            "type": "cdn",
-            "feature": "画像配信",
-            "required": ["cdn"]
+            "id": "blog-storage-001",
+            "type": "storage",
+            "feature": "画像・ファイル保存",
+            "required": ["storage"]
+        },
+        {
+            "id": "blog-compute-001",
+            "type": "compute",
+            "feature": "動的コンテンツ処理",
+            "required": ["compute"]
         }
     ],
     "requests": [
@@ -35,83 +35,113 @@
             "feature": [
                 {
                     "feature_id": "blog-web-001",
-                    "request": 100
-                },
-                {
-                    "feature_id": "blog-domain-001"
+                    "request": 500
                 }
             ],
-            "funds": 5,
-            "description": "ブログを開始、友人や家族が閲覧"
+            "funds": 15,
+            "description": "ブログを開始、基本的なWebサイト機能"
         },
         {
             "month": 1,
             "feature": [
                 {
                     "feature_id": "blog-web-001",
-                    "request": 300
+                    "request": 1200
                 },
                 {
-                    "feature_id": "blog-db-001"
+                    "feature_id": "blog-storage-001",
+                    "request": 300
                 }
             ],
-            "funds": 8,
-            "description": "記事を増やし、検索エンジンからの流入開始"
+            "funds": 20,
+            "description": "画像投稿開始、ストレージ使用量増加"
         },
         {
             "month": 2,
             "feature": [
                 {
                     "feature_id": "blog-web-001",
+                    "request": 2500
+                },
+                {
+                    "feature_id": "blog-db-001",
                     "request": 800
+                },
+                {
+                    "feature_id": "blog-storage-001",
+                    "request": 600
                 }
             ],
-            "funds": 10,
-            "description": "SNSでシェアされ、アクセス数増加"
+            "funds": 30,
+            "description": "記事データベース導入、コンテンツ管理開始"
         },
         {
             "month": 3,
             "feature": [
                 {
                     "feature_id": "blog-web-001",
+                    "request": 4000
+                },
+                {
+                    "feature_id": "blog-db-001",
                     "request": 1500
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 500
+                    "feature_id": "blog-storage-001",
+                    "request": 1000
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 800
                 }
             ],
-            "funds": 12,
-            "description": "画像コンテンツ増加、CDN導入検討"
+            "funds": 45,
+            "description": "動的コンテンツ処理開始、検索機能追加"
         },
         {
             "month": 4,
             "feature": [
                 {
                     "feature_id": "blog-web-001",
-                    "request": 2200
+                    "request": 6500
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 800
+                    "feature_id": "blog-db-001",
+                    "request": 2500
+                },
+                {
+                    "feature_id": "blog-storage-001",
+                    "request": 1500
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 1200
                 }
             ],
-            "funds": 15,
-            "description": "人気記事がバズり、アクセス急増"
+            "funds": 60,
+            "description": "人気記事がバズり、全機能でアクセス急増"
         },
         {
             "month": 5,
             "feature": [
                 {
                     "feature_id": "blog-web-001",
+                    "request": 8000
+                },
+                {
+                    "feature_id": "blog-db-001",
                     "request": 3000
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 1200
+                    "feature_id": "blog-storage-001",
+                    "request": 2000
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 1500
                 }
             ],
-            "funds": 18,
+            "funds": 75,
             "description": "定期読者が増加、安定したトラフィック"
         },
         {
@@ -119,14 +149,22 @@
             "feature": [
                 {
                     "feature_id": "blog-web-001",
+                    "request": 12000
+                },
+                {
+                    "feature_id": "blog-db-001",
                     "request": 4500
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 1800
+                    "feature_id": "blog-storage-001",
+                    "request": 3000
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 2200
                 }
             ],
-            "funds": 22,
+            "funds": 95,
             "description": "半年記念記事が話題に、大幅アクセス増"
         },
         {
@@ -134,14 +172,22 @@
             "feature": [
                 {
                     "feature_id": "blog-web-001",
+                    "request": 10000
+                },
+                {
+                    "feature_id": "blog-db-001",
                     "request": 3800
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 1500
+                    "feature_id": "blog-storage-001",
+                    "request": 2500
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 1800
                 }
             ],
-            "funds": 20,
+            "funds": 85,
             "description": "夏休み期間でアクセス若干減少"
         },
         {
@@ -149,14 +195,22 @@
             "feature": [
                 {
                     "feature_id": "blog-web-001",
-                    "request": 5200
+                    "request": 15000
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 2000
+                    "feature_id": "blog-db-001",
+                    "request": 5500
+                },
+                {
+                    "feature_id": "blog-storage-001",
+                    "request": 3500
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 2800
                 }
             ],
-            "funds": 25,
+            "funds": 110,
             "description": "新学期・新シーズン記事で再びアクセス増"
         },
         {
@@ -164,14 +218,22 @@
             "feature": [
                 {
                     "feature_id": "blog-web-001",
-                    "request": 6000
+                    "request": 18000
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 2400
+                    "feature_id": "blog-db-001",
+                    "request": 6500
+                },
+                {
+                    "feature_id": "blog-storage-001",
+                    "request": 4200
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 3200
                 }
             ],
-            "funds": 28,
+            "funds": 130,
             "description": "年末に向けて記事投稿頻度アップ"
         },
         {
@@ -179,14 +241,22 @@
             "feature": [
                 {
                     "feature_id": "blog-web-001",
-                    "request": 7500
+                    "request": 22000
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 3000
+                    "feature_id": "blog-db-001",
+                    "request": 8000
+                },
+                {
+                    "feature_id": "blog-storage-001",
+                    "request": 5000
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 4000
                 }
             ],
-            "funds": 30,
+            "funds": 150,
             "description": "年末特集記事が大ヒット"
         },
         {
@@ -194,14 +264,22 @@
             "feature": [
                 {
                     "feature_id": "blog-web-001",
-                    "request": 8000
+                    "request": 25000
                 },
                 {
-                    "feature_id": "blog-cdn-001",
-                    "request": 3200
+                    "feature_id": "blog-db-001",
+                    "request": 9000
+                },
+                {
+                    "feature_id": "blog-storage-001",
+                    "request": 6000
+                },
+                {
+                    "feature_id": "blog-compute-001",
+                    "request": 4500
                 }
             ],
-            "funds": 35,
+            "funds": 180,
             "description": "1年間の総まとめ記事で最高アクセス達成"
         }
     ]
