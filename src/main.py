@@ -7,7 +7,7 @@ from routers import costs
 
 app = FastAPI()
 
-origins = ["http://localhost:5173"]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,6 +22,10 @@ app.add_middleware(
 def health_check():
     return {"message": "Hello!"}
 
+
+@app.get("/production/health")
+def health_health_check():
+    return {"message": "Hello!"}
 
 
 app.include_router(play.play_router)
