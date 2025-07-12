@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import boto3
-from boto3.dynamodb.conditions import Key
-import os
+from boto3.dynamodb.conditions import Key, Attr
+import uuid
+from decimal import Decimal
+from routers.extractor import extract_user_id_from_token
 
 from settings import get_DynamoDbSettings
 
@@ -12,38 +14,19 @@ settings = get_DynamoDbSettings()
 
 REGION = settings.REGION
 
-# Docker環境かローカル開発環境かを判定
-is_docker = os.getenv("DOCKER_ENV", "false").lower() == "true" or os.path.exists(
-    "/.dockerenv"
-)
-is_local_dev = os.getenv("LOCAL_DEV", "false").lower() == "true"
+dynamodb = boto3.resource(
+    "dynamodb",
+    region_name=REGION,
 
-if is_docker or is_local_dev:
-    # ローカル開発環境またはDocker環境ではローカルDynamoDBを使用
-    dynamodb_endpoint = (
-        "http://dynamodb-local:8000" if is_docker else "http://localhost:8000"
-    )
-    dynamodb = boto3.resource(
-        "dynamodb",
-        region_name=REGION,
-        endpoint_url=dynamodb_endpoint,
-        aws_access_key_id="dummy",
-        aws_secret_access_key="dummy",
-    )
-else:
-    # 本番環境では通常のAWS DynamoDBを使用
-    dynamodb = boto3.resource(
-        "dynamodb",
-        region_name=REGION,
-    )
+)
 
 table_name = "game"
 table = dynamodb.Table(table_name)
 
-
 class CostCalculationRequest(BaseModel):
     struct_data: dict
     num_requests: int = 1000
+
 
 
 def calculate_final_cost(struct_data: dict, costs_db: dict, num_requests: int) -> float:
@@ -63,10 +46,9 @@ def calculate_final_cost(struct_data: dict, costs_db: dict, num_requests: int) -
                 monthly_cost += cost
             elif billing_type == "per_request":
                 per_request_cost += cost
-
+    
     final_cost = monthly_cost + (per_request_cost * num_requests)
     return final_cost
-
 
 @costs_router.get("/costs")
 async def get_costs():
@@ -77,47 +59,37 @@ async def get_costs():
 
     return formatted_data
 
-
 @costs_router.post("/calculate")
 async def calculate_cost(request: CostCalculationRequest):
     response = table.query(
         KeyConditionExpression=Key("PK").eq("costs") & Key("SK").begins_with("metadata")
     )
     items = response.get("Items", [])
-
+    
     if not items:
         raise HTTPException(status_code=404, detail="Cost data not found")
-
+    
     costs_db = items[0].get("costs", {})
-
+    
     if not costs_db:
         raise HTTPException(status_code=404, detail="Cost data not found")
-
-    final_cost = calculate_final_cost(
-        request.struct_data, costs_db, request.num_requests
-    )
+    
+    final_cost = calculate_final_cost(request.struct_data, costs_db, request.num_requests)
     resource_types = list(find_resource_types(request.struct_data))
-
-    monthly_cost = sum(
-        float(costs_db.get(t, {}).get("cost", 0))
-        for t in resource_types
-        if costs_db.get(t, {}).get("type") == "per_month"
-    )
-    request_cost = (
-        sum(
-            float(costs_db.get(t, {}).get("cost", 0))
-            for t in resource_types
-            if costs_db.get(t, {}).get("type") == "per_request"
-        )
-        * request.num_requests
-    )
-
+    
+    monthly_cost = sum(float(costs_db.get(t, {}).get("cost", 0)) for t in resource_types if costs_db.get(t, {}).get("type") == "per_month")
+    request_cost = sum(float(costs_db.get(t, {}).get("cost", 0)) for t in resource_types if costs_db.get(t, {}).get("type") == "per_request") * request.num_requests
+    
     return {
         "final_cost": final_cost,
         "num_requests": request.num_requests,
         "resource_types": resource_types,
-        "breakdown": {"monthly_cost": monthly_cost, "request_cost": request_cost},
+        "breakdown": {
+            "monthly_cost": monthly_cost,
+            "request_cost": request_cost
+        }
     }
+
 
 
 def find_resource_types(data):
