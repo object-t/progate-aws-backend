@@ -21,6 +21,11 @@ app.add_middleware(
 )
 
 
+@app.get("/production")
+def hello():
+    return {"message": "a"}
+
+
 @app.get("/health")
 def health_check():
     return {"message": "Hello!"}
