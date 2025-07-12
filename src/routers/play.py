@@ -53,41 +53,7 @@ async def create_game(request: play_models.CreateGameRequest) -> play_models.Cre
         "PK": f"user#{user_id}",
         "SK": f"game#{game_id}",
         "game_name": game_name,
-        "struct": {
-            "vpc_resources": [
-                {
-                    "vpcId": "76827c2d-4a08-41e0-b727-d72f1575b1f8",
-                    "vpc": {
-                        "id": "76827c2d-4a08-41e0-b727-d72f1575b1f8",
-                        "name": "vpc_c8b7e39f70",
-                        "type": "vpc"
-                    },
-                    "availabilityZones": [
-                        {
-                            "id": "f1de9850-ca68-4c2e-8f89-b8f06d80b311",
-                            "name": "Availability Zone A",
-                            "type": "az",
-                            "vpcId": "76827c2d-4a08-41e0-b727-d72f1575b1f8",
-                            "azName": "a"
-                        }
-                    ],
-                    "subnets": [
-                        {
-                            "id": "35fc1052-3ade-4314-813f-45d0945035d2",
-                            "name": "default_subnet_e3d6afee9e",
-                            "vpcId": "76827c2d-4a08-41e0-b727-d72f1575b1f8",
-                            "azId": "f1de9850-ca68-4c2e-8f89-b8f06d80b311",
-                            "isDefault": True,
-                            "type": "private_subnet"
-                        }
-                    ],
-                    "networks": [],
-                    "computes": [],
-                    "databases": []
-                }
-            ],
-            "regional_resources": []
-        },
+        "struct": None,
         "funds": 0,
         "current_month": 0,
         "scenarioes": scenarioes,
@@ -184,7 +150,7 @@ async def get_advice_from_ai(
         }
     )
 
-    modelId = "anthropic.claude-sonnet-4-20250514-v1:0"
+    modelId = "us.anthropic.claude-sonnet-4-20250514-v1:0"
     accept = "application/json"
     contentType = "application/json"
 
