@@ -7,6 +7,8 @@ cp .env.example .env
 # サーバー起動
 Dynamo DBと繋げたり、DockerでFastAPI起動する場合は、
 
+test
+
 ```zsh
 docker compose up -d
 ```
