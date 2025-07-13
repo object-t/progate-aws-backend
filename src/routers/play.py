@@ -504,3 +504,24 @@ async def update_game(
         return {"message": "Game data updated successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"ゲーム更新エラー: {str(e)}")
+
+@play_router.delete("/play/game/{game_id}")
+async def delete_game(
+    game_id: str, user_id: str = Depends(extract_user_id_without_verification)
+):
+    """ゲームデータを削除"""
+    try:
+        pk = f"user#{user_id}"
+        sk = f"game#{game_id}"
+
+        response = table.delete_item(
+            Key={"PK": pk, "SK": sk},
+            ReturnValues="ALL_OLD"
+        )
+
+        if "Attributes" not in response or not response["Attributes"]:
+            raise HTTPException(status_code=404, detail="ゲームが見つかりません")
+
+        return {"message": "Game deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ゲーム削除エラー: {str(e)}")
