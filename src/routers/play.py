@@ -15,131 +15,142 @@ from typing import List
 
 def convert_struct_for_cost_calculation(struct_data):
     """
-    複雑なstructデータをコスト計算しやすい形式に変換する
+    複雑なstructデータをコスト計算用の簡素な形式に変換する
+    costs.jsonのキーに対応する形式: {service_name: {quantity: count}}
     """
     if not struct_data:
         return {}
-
-    converted = {}
-
-    # 既にシンプルな形式の場合はそのまま返す
-    if all(
+      
+    # 既にシンプルな形式（costs.jsonのキーが直接使われている）の場合はそのまま返す
+    if isinstance(struct_data, dict) and all(
         isinstance(v, (dict, int, float)) and not isinstance(v, list)
         for v in struct_data.values()
     ):
-        # トップレベルがサービス名の場合
-        if any(
-            key.lower()
-            in [
-                "ec2",
-                "rds",
-                "s3",
-                "lambda",
-                "vpc",
-                "nat_gateway",
-                "elastic_ip",
-                "dynamo_db",
-            ]
-            for key in struct_data.keys()
-        ):
+        # costs.jsonに存在するサービス名かチェック
+        cost_service_names = [
+            "rds",
+            "s3",
+            "dynamo_db",
+            "nat_gateway",
+            "vpc",
+            "cloudfront",
+            "elastic_ip",
+            "public_subnet",
+            "route53",
+            "lambda",
+            "endpoint",
+            "cost_explorer",
+            "alb",
+            "api_gateway",
+            "private_subnet",
+        ]
+        if any(key.lower() in cost_service_names for key in struct_data.keys()):
             return struct_data
 
-    # 複雑な構造の場合は変換処理を実行
+    # 複雑な構造から簡素な形式に変換
+    converted = {}
+
     try:
-        # VPCの処理
-        if "vpc" in struct_data:
-            converted["vpc"] = {"quantity": 1}
+        # VPC構造の処理
+        if "vpc" in struct_data and isinstance(struct_data["vpc"], list):
+            for vpc_item in struct_data["vpc"]:
+                # VPC自体（無料だが数をカウント）
+                converted["vpc"] = {"quantity": 1}
 
-        # Availability Zonesの処理
-        if "availabilityZones" in struct_data:
-            az_count = len(struct_data["availabilityZones"])
-            if az_count > 0:
-                converted["availability_zone"] = {"quantity": az_count}
-
-        # Subnetsの処理
-        if "subnets" in struct_data:
-            subnet_types = {}
-            for subnet in struct_data["subnets"]:
-                subnet_type = subnet.get("type", "subnet")
-                if subnet_type in subnet_types:
-                    subnet_types[subnet_type] += 1
-                else:
-                    subnet_types[subnet_type] = 1
-
-            for subnet_type, count in subnet_types.items():
-                converted[subnet_type] = {"quantity": count}
-
-        # Networksの処理
-        if "networks" in struct_data:
-            network_types = {}
-            for network in struct_data["networks"]:
-                network_type = network.get("type", "network")
-                if network_type in network_types:
-                    network_types[network_type] += 1
-                else:
-                    network_types[network_type] = 1
-
-            for network_type, count in network_types.items():
-                converted[network_type] = {"quantity": count}
-
-        # Computesの処理
-        if "computes" in struct_data:
-            compute_types = {}
-            elastic_ip_count = 0
-
-            for compute in struct_data["computes"]:
-                compute_type = compute.get("type", "compute")
-                if compute_type in compute_types:
-                    compute_types[compute_type] += 1
-                else:
-                    compute_types[compute_type] = 1
-
-                # Elastic IPの数もカウント
-                if "elasticIpId" in compute:
-                    elastic_ip_count += 1
-
-            for compute_type, count in compute_types.items():
-                converted[compute_type] = {"quantity": count}
-
-            if elastic_ip_count > 0:
-                converted["elastic_ip"] = {"quantity": elastic_ip_count}
-
-        # Databasesの処理
-        if "databases" in struct_data:
-            database_types = {}
-            for database in struct_data["databases"]:
-                database_type = database.get("type", "database")
-                if database_type in database_types:
-                    database_types[database_type] += 1
-                else:
-                    database_types[database_type] = 1
-
-            for database_type, count in database_types.items():
-                converted[database_type] = {"quantity": count}
-
-        # 配列形式の場合の処理
-        if isinstance(struct_data, list):
-            for item in struct_data:
-                if isinstance(item, dict):
-                    sub_converted = convert_struct_for_cost_calculation(item)
-                    for key, value in sub_converted.items():
-                        if key in converted:
-                            if isinstance(converted[key], dict) and isinstance(
-                                value, dict
+                # データベース（RDS）
+                if "databases" in vpc_item:
+                    rds_count = 0
+                    for db in vpc_item["databases"]:
+                        if db.get("type") == "rds":
+                            rds_count += 1
+                            # Read Replicaも追加
+                            if (
+                                "replication" in db
+                                and "readReplicas" in db["replication"]
                             ):
-                                converted[key]["quantity"] = converted[key].get(
-                                    "quantity", 0
-                                ) + value.get("quantity", 0)
-                        else:
-                            converted[key] = value
+                                rds_count += len(db["replication"]["readReplicas"])
+                    if rds_count > 0:
+                        converted["rds"] = {"quantity": rds_count}
 
-        return converted if converted else struct_data
+                # コンピュートリソース
+                if "computes" in vpc_item:
+                    lambda_count = 0
+                    alb_count = 0
+                    for compute in vpc_item["computes"]:
+                        if compute.get("type") == "lambda":
+                            lambda_count += 1
+                        elif compute.get("type") == "alb":
+                            alb_count += 1
+
+                    if lambda_count > 0:
+                        converted["lambda"] = {"quantity": lambda_count}
+                    if alb_count > 0:
+                        converted["alb"] = {"quantity": alb_count}
+
+                # ネットワークリソース
+                if "networks" in vpc_item:
+                    nat_gateway_count = 0
+                    endpoint_count = 0
+                    for network in vpc_item["networks"]:
+                        if network.get("type") == "nat_gateway":
+                            nat_gateway_count += 1
+                        elif network.get("type") == "endpoint":
+                            endpoint_count += 1
+
+                    if nat_gateway_count > 0:
+                        converted["nat_gateway"] = {"quantity": nat_gateway_count}
+                    if endpoint_count > 0:
+                        converted["endpoint"] = {"quantity": endpoint_count}
+
+                # サブネット
+                if "subnets" in vpc_item:
+                    public_subnet_count = 0
+                    private_subnet_count = 0
+                    for subnet in vpc_item["subnets"]:
+                        if subnet.get("type") == "public_subnet":
+                            public_subnet_count += 1
+                        elif subnet.get("type") == "private_subnet":
+                            private_subnet_count += 1
+
+                    if public_subnet_count > 0:
+                        converted["public_subnet"] = {"quantity": public_subnet_count}
+                    if private_subnet_count > 0:
+                        converted["private_subnet"] = {"quantity": private_subnet_count}
+
+        # リージョナルリソース
+        if "rigional" in struct_data and isinstance(struct_data["rigional"], list):
+            for resource in struct_data["rigional"]:
+                resource_type = resource.get("type")
+
+                # costs.jsonのキーに直接マッピング
+                if resource_type == "s3":
+                    converted["s3"] = converted.get("s3", {"quantity": 0})
+                    converted["s3"]["quantity"] += 1
+                elif resource_type == "api_gateway":
+                    converted["api_gateway"] = converted.get(
+                        "api_gateway", {"quantity": 0}
+                    )
+                    converted["api_gateway"]["quantity"] += 1
+                elif resource_type == "route53":
+                    converted["route53"] = converted.get("route53", {"quantity": 0})
+                    converted["route53"]["quantity"] += 1
+                elif resource_type == "cloudfront":
+                    converted["cloudfront"] = converted.get(
+                        "cloudfront", {"quantity": 0}
+                    )
+                    converted["cloudfront"]["quantity"] += 1
+                elif resource_type == "elastic_ip":
+                    converted["elastic_ip"] = converted.get(
+                        "elastic_ip", {"quantity": 0}
+                    )
+                    converted["elastic_ip"]["quantity"] += 1
+
+        return converted
+
 
     except Exception as e:
-        print(f"struct変換エラー: {e}")
-        # エラーが発生した場合は元のデータを返す
-        return struct_data if isinstance(struct_data, dict) else {}
-
+        print(f"Struct conversion error: {e}")
+        return {}
 
 play_router = APIRouter()
 bedrocksettings = get_BedrockSettings()
@@ -178,7 +189,6 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
 
     game_id = str(uuid.uuid4())
     sandbox_id = str(uuid.uuid4())
-    user_id = "a3ewdsd"
 
     game_item = {
         "PK": f"user#{user_id}",
@@ -272,31 +282,29 @@ async def report_game(
         game_data = items[0]
         struct_data = game_data.get("struct", {})
         current_month = game_data.get("current_month", 0)
-        scenario_name = game_data.get("scenarioes", "")
+        scenario_name = game_data.get("scenario_id", "")
         current_funds = game_data.get("funds", 0)
 
         # structデータをコスト計算用に変換
         converted_struct_data = convert_struct_for_cost_calculation(struct_data)
 
         # シナリオ一覧を取得
-        scenarios = await get_scenarioes(user_id)
+        response = table.query(KeyConditionExpression=Key("PK").eq("scenario"))
+        scenarios = response.get("Items", [])
 
-        # シナリオ名に基づいて対応するシナリオを検索
+        # シナリオIDに基づいて対応するシナリオを検索
         target_scenario = None
         for scenario in scenarios:
-            scenario_name_to_check = (
-                scenario.name if hasattr(scenario, "name") else scenario.get("name", "")
+            scenario_id_to_check = (
+                scenario.scenario_id if hasattr(scenario, "scenario_id") else scenario.get("scenario_id", "")
             )
-            if (
-                scenario_name in scenario_name_to_check
-                or scenario_name_to_check in scenario_name
-            ):
+            if scenario_id_to_check == scenario_name:
                 target_scenario = scenario
                 break
 
         if not target_scenario:
             available_scenarios = [
-                s.name if hasattr(s, "name") else s.get("name", "Unknown")
+                s.scenario_id if hasattr(s, "scenario_id") else s.get("scenario_id", "Unknown")
                 for s in scenarios
             ]
             raise HTTPException(
@@ -320,10 +328,10 @@ async def report_game(
         # 現在の月のリクエスト数を取得
         month_requests = 0
         for request_data in scenario_detail.requests:
-            if request_data.get("month") == current_month:
-                for feature in request_data.get("feature", []):
-                    if isinstance(feature, dict) and "request" in feature:
-                        month_requests += feature["request"]
+            if request_data.month == current_month:
+                for feature in request_data.feature:
+                    if hasattr(feature, 'request') and feature.request is not None:
+                        month_requests += feature.request
                 break
 
         # コストデータを取得
