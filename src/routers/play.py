@@ -6,7 +6,7 @@ import uuid
 from decimal import Decimal
 from datetime import datetime
 from settings import get_BedrockSettings, get_DynamoDbSettings
-from routers.extractor import extract_user_id_from_token
+from routers.extractor import extract_user_id_without_verification
 from routers.costs import get_costs
 from routers.helpers.service import scenario_service
 
@@ -166,7 +166,7 @@ dynamodb = boto3.resource(
 table = dynamodb.Table("game")
 
 
-async def get_scenarioes(user_id: str):
+async def get_scenarioes():
     """シナリオ一覧を取得する内部関数"""
     response = table.query(KeyConditionExpression=Key("PK").eq("scenario"))
     response_items = response.get("Items", [])
@@ -174,7 +174,9 @@ async def get_scenarioes(user_id: str):
 
 
 @play_router.get("/play/scenarioes")
-async def get_scenarioes_endpoint(user_id: str = Depends(extract_user_id_from_token)):
+async def get_scenarioes_endpoint(
+    user_id: str = Depends(extract_user_id_without_verification),
+):
     """シナリオ一覧を取得するAPIエンドポイント"""
     response = table.query(KeyConditionExpression=Key("PK").eq("scenario"))
     response_items = response.get("Items", [])
@@ -184,7 +186,7 @@ async def get_scenarioes_endpoint(user_id: str = Depends(extract_user_id_from_to
 @play_router.post("/play/create")
 async def create_game(
     request: play_models.CreateGameRequest,
-    user_id: str = Depends(extract_user_id_from_token),
+    user_id: str = Depends(extract_user_id_without_verification),
 ) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
     game_name = request.game_name
@@ -219,7 +221,7 @@ async def create_game(
 
 @play_router.get("/play/{game_id}")
 async def get_game(
-    game_id: str, user_id: str = Depends(extract_user_id_from_token)
+    game_id: str, user_id: str = Depends(extract_user_id_without_verification)
 ) -> play_models.GetGameResponse:
     formatted_user_id = f"user#{user_id}"
     formatted_game_id = f"game#{game_id}"
@@ -247,7 +249,7 @@ async def get_game(
 async def update_game(
     game_id: str,
     request: play_models.UpdateGameRequest,
-    user_id: str = Depends(extract_user_id_from_token),
+    user_id: str = Depends(extract_user_id_without_verification),
 ):
     formatted_user_id = f"user#{user_id}"
     formatted_game_id = f"game#{game_id}"
@@ -293,7 +295,7 @@ async def update_game(
 
 @play_router.get("/play/{game_id}/struct")
 async def get_struct(
-    game_id: str, user_id: str = Depends(extract_user_id_from_token)
+    game_id: str, user_id: str = Depends(extract_user_id_without_verification)
 ) -> play_models.GetStructResponse:
     formatted_user_id = f"user#{user_id}"
     formatted_game_id = f"game#{game_id}"
@@ -309,7 +311,9 @@ async def get_struct(
 
 
 @play_router.post("/play/report/{game_id}")
-async def report_game(game_id: str, user_id: str = Depends(extract_user_id_from_token)):
+async def report_game(
+    game_id: str, user_id: str = Depends(extract_user_id_without_verification)
+):
     """
     ゲームレポートを生成し、月を進める
     - コスト計算
@@ -339,7 +343,7 @@ async def report_game(game_id: str, user_id: str = Depends(extract_user_id_from_
         converted_struct_data = convert_struct_for_cost_calculation(struct_data)
 
         # シナリオ一覧を取得
-        scenarios = await get_scenarioes(user_id)
+        scenarios = await get_scenarioes()
 
         # シナリオIDに基づいて対応するシナリオを検索
         target_scenario = None
@@ -443,10 +447,10 @@ async def report_game(game_id: str, user_id: str = Depends(extract_user_id_from_
 
         # ゲームデータを更新
         update_data = {
-            "funds": float(new_funds),
+            "funds": new_funds,  # Decimal型のまま保存
             "current_month": new_month,
-            "last_total_cost": float(total_cost),
-            "last_resource_costs": {k: float(v) for k, v in resource_costs.items()},
+            "last_total_cost": total_cost,  # Decimal型のまま保存
+            "last_resource_costs": resource_costs,  # Decimal型のまま保存
             "game_over": game_over,
             "updated_at": datetime.now().isoformat(),
         }
@@ -454,10 +458,10 @@ async def report_game(game_id: str, user_id: str = Depends(extract_user_id_from_
         # DynamoDBの更新
         update_expression = "SET funds = :funds, current_month = :current_month, last_total_cost = :last_total_cost, last_resource_costs = :last_resource_costs, game_over = :game_over, updated_at = :updated_at"
         expression_attribute_values = {
-            ":funds": update_data["funds"],
+            ":funds": update_data["funds"],  # Decimal型
             ":current_month": update_data["current_month"],
-            ":last_total_cost": update_data["last_total_cost"],
-            ":last_resource_costs": update_data["last_resource_costs"],
+            ":last_total_cost": update_data["last_total_cost"],  # Decimal型
+            ":last_resource_costs": update_data["last_resource_costs"],  # Decimal型
             ":game_over": update_data["game_over"],
             ":updated_at": update_data["updated_at"],
         }
