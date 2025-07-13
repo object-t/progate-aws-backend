@@ -43,6 +43,9 @@ class GetGameResponse(BaseModel):
     is_finished: bool
     created_at: str
 
+class GetGameResponses(BaseModel):
+    games: List[GetGameResponse]
+
 class UpdateGameRequest(BaseModel):
     data: Dict[str, Any]
 
