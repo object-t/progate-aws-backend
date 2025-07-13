@@ -34,12 +34,6 @@ COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 # Copy application code
 COPY --from=builder --chown=appuser:appuser /app .
 
-# Copy initialization scripts
-COPY --chown=appuser:appuser ./scripts ./scripts
-
-# Make scripts executable
-RUN chmod +x /app/scripts/*.sh
-
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -54,6 +48,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
 
 WORKDIR /app/src
 
-# Use entrypoint script to initialize data before starting the application
-ENTRYPOINT ["/app/scripts/entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
