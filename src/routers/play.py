@@ -392,26 +392,14 @@ async def report_game(
         raise HTTPException(status_code=500, detail=f"レポート生成エラー: {str(e)}")
 
 
-@play_router.post("/play/ai/{game_id}")
+@play_router.post("/play/ai")
 async def get_advice_from_ai(
-    game_id: str, user_id: str = Depends(extract_user_id_without_verification)
+    struct: play_models.GetStructResponse, user_id: str = Depends(extract_user_id_without_verification)
 ):
-    """AIからのアドバイスを取得"""
-    formatted_user_id = f"user#{user_id}"
 
-    response = table.query(
-        KeyConditionExpression=Key("PK").eq(formatted_user_id)
-        & Key("SK").begins_with("game"),
-        FilterExpression=Attr("is_finished").eq(False),
-    )
-
-    items = response.get("Items", [])
-    if not items:
-        raise HTTPException(status_code=404, detail="進行中のゲームが見つかりません")
-
-    struct = items[0].get("struct", {})
-
-    struct_json = json.dumps(struct, indent=2, ensure_ascii=False)
+    # Pydanticモデルを辞書に変換してからJSON化
+    struct_dict = struct.dict() if hasattr(struct, 'dict') else struct.__dict__
+    struct_json = json.dumps(struct_dict, indent=2, ensure_ascii=False)
     prompt = f"""
         あなたはAWS Bedrockのマジエキスパートです。
         今からマジで構造見せるから、ガチで“危機感持って”厳しくアドバイスをください：
