@@ -248,7 +248,9 @@ async def get_game(
 
 
 @play_router.post("/play/report/{game_id}")
-async def report_game(game_id: str, user_id: str = Depends(extract_user_id_without_verification)):
+async def report_game(
+    game_id: str, user_id: str = Depends(extract_user_id_without_verification)
+):
     """ゲームのレポートを生成"""
     try:
         formatted_user_id = f"user#{user_id}"
@@ -397,7 +399,6 @@ async def get_advice_from_ai(
         KeyConditionExpression=Key("PK").eq(formatted_user_id)
         & Key("SK").begins_with("game"),
         FilterExpression=Attr("is_finished").eq(False),
-        ProjectionExpression="struct",
     )
 
     items = response.get("Items", [])
@@ -454,7 +455,9 @@ async def get_advice_from_ai(
 
 @play_router.put("/play/{game_id}")
 async def update_game(
-    game_id: str, request: play_models.UpdateGameRequest, user_id: str = Depends(extract_user_id_without_verification)
+    game_id: str,
+    request: play_models.UpdateGameRequest,
+    user_id: str = Depends(extract_user_id_without_verification),
 ):
     """ゲームデータを更新"""
     try:
