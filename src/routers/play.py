@@ -172,13 +172,13 @@ async def get_scenarioes():
 @play_router.post("/play/create")
 async def create_game(
     request: play_models.CreateGameRequest,
-    user_id: str = Depends(extract_user_id_from_token),
 ) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
     game_name = request.game_name
 
     game_id = str(uuid.uuid4())
     sandbox_id = str(uuid.uuid4())
+    user_id = "a3ewdsd"
 
     game_item = {
         "PK": f"user#{user_id}",
