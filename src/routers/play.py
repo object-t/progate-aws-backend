@@ -151,10 +151,7 @@ REGION = dynamodbsettings.REGION
 
 region = "ap-northeast-1"
 
-dynamodb = boto3.resource(
-    "dynamodb",
-    region_name=region,
-)
+dynamodb = boto3.resource("dynamodb", region_name=region)
 
 table_name = "game"
 table = dynamodb.Table(table_name)
