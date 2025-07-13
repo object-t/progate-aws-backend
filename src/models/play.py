@@ -20,7 +20,7 @@ class Scenarioes(BaseModel):
     scenarioes: ScenarioesData
 
 class CreateGameRequest(BaseModel):
-    scenarioes: str
+    scenario_id: str
     game_name: Optional[str] = None
 
 class CreateGameResponse(BaseModel):
@@ -29,7 +29,7 @@ class CreateGameResponse(BaseModel):
     struct: Optional[dict] = None
     funds: int
     current_month: int
-    scenarioes: str
+    scenario_id: str
     is_finished: bool
     created_at: str
 
@@ -39,7 +39,7 @@ class GetGameResponse(BaseModel):
     struct: Optional[dict] = None
     funds: int
     current_month: int
-    scenarioes: str
+    scenario_id: str
     is_finished: bool
     created_at: str
 

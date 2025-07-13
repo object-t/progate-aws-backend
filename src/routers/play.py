@@ -174,12 +174,11 @@ async def create_game(
     request: play_models.CreateGameRequest,
     user_id: str = Depends(extract_user_id_without_verification),
 ) -> play_models.CreateGameResponse:
-    scenarioes = request.scenarioes
+    scenario_id = request.scenario_id
     game_name = request.game_name
 
     game_id = str(uuid.uuid4())
     sandbox_id = str(uuid.uuid4())
-    user_id = "a3ewdsd"
 
     game_item = {
         "PK": f"user#{user_id}",
@@ -188,7 +187,7 @@ async def create_game(
         "struct": None,
         "funds": 0,
         "current_month": 0,
-        "scenarioes": scenarioes,
+        "scenario_id": scenario_id,
         "is_finished": False,
         "created_at": datetime.now().isoformat(),
     }
@@ -212,7 +211,7 @@ async def create_game(
         "struct": game_item["struct"],
         "funds": game_item["funds"],
         "current_month": game_item["current_month"],
-        "scenarioes": game_item["scenarioes"],
+        "scenario_id": game_item["scenario_id"],
         "is_finished": game_item["is_finished"],
         "created_at": game_item["created_at"],
     }
@@ -231,6 +230,8 @@ async def get_game(
         & Key("SK").begins_with("game"),
         FilterExpression=Attr("is_finished").eq(False),
     )
+    if not response.get("Items"):
+        raise HTTPException(status_code=404, detail="ゲームが見つかりません")
     game_data = response.get("Items", [{}])[0]
 
     formatted_response = {
@@ -239,7 +240,7 @@ async def get_game(
         "struct": game_data.get("struct"),
         "funds": game_data.get("funds"),
         "current_month": game_data.get("current_month"),
-        "scenarioes": game_data.get("scenarioes"),
+        "scenario_id": game_data.get("scenario_id"),
         "is_finished": game_data.get("is_finished"),
         "created_at": game_data.get("created_at"),
     }
