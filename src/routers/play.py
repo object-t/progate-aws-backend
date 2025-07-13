@@ -7,7 +7,7 @@ import json
 from decimal import Decimal
 from datetime import datetime
 from settings import get_BedrockSettings, get_DynamoDbSettings
-from routers.extractor import extract_user_id_from_token
+from routers.extractor import extract_user_id_without_verification
 from routers.costs import get_costs, calculate_final_cost
 from routers.helpers.service import scenario_service
 from typing import List
@@ -172,6 +172,7 @@ async def get_scenarioes():
 @play_router.post("/play/create")
 async def create_game(
     request: play_models.CreateGameRequest,
+    user_id: str = Depends(extract_user_id_without_verification),
 ) -> play_models.CreateGameResponse:
     scenarioes = request.scenarioes
     game_name = request.game_name
@@ -221,7 +222,7 @@ async def create_game(
 
 @play_router.get("/play/games")
 async def get_game(
-    user_id: str = Depends(extract_user_id_from_token),
+    user_id: str = Depends(extract_user_id_without_verification),
 ) -> play_models.GetGameResponse:
     formatted_user_id = f"user#{user_id}"
 
@@ -247,7 +248,7 @@ async def get_game(
 
 
 @play_router.post("/play/report/{game_id}")
-async def report_game(game_id: str, user_id: str = "test-user-123"):
+async def report_game(game_id: str, user_id: str = Depends(extract_user_id_without_verification)):
     """ゲームのレポートを生成"""
     try:
         formatted_user_id = f"user#{user_id}"
@@ -387,7 +388,7 @@ async def report_game(game_id: str, user_id: str = "test-user-123"):
 
 @play_router.post("/play/ai/{game_id}")
 async def get_advice_from_ai(
-    game_id: str, user_id: str = Depends(extract_user_id_from_token)
+    game_id: str, user_id: str = Depends(extract_user_id_without_verification)
 ):
     """AIからのアドバイスを取得"""
     formatted_user_id = f"user#{user_id}"
@@ -453,7 +454,7 @@ async def get_advice_from_ai(
 
 @play_router.put("/play/{game_id}")
 async def update_game(
-    game_id: str, request: play_models.UpdateGameRequest, user_id: str = "test-user-123"
+    game_id: str, request: play_models.UpdateGameRequest, user_id: str = Depends(extract_user_id_without_verification)
 ):
     """ゲームデータを更新"""
     try:
