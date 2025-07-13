@@ -198,7 +198,9 @@ async def get_game(user_id: str = Depends(extract_user_id_without_verification))
         KeyConditionExpression=Key("PK").eq(formatted_user_id) & Key("SK").begins_with("game"),
         FilterExpression=Attr("is_finished").eq(False)
     )
-    if not response.get("Items", [{}]):
+
+    length = len(response["Items"])
+    if length == 0:
         raise HTTPException(status_code=404, detail="ゲームが見つかりません")
     
     game_data = response["Items"][0]
