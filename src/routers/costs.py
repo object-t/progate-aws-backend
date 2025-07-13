@@ -4,7 +4,7 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 import uuid
 from decimal import Decimal
-from routers.extractor import extract_user_id_from_token
+from routers.extractor import extract_user_id_without_verification
 
 from settings import get_DynamoDbSettings
 
