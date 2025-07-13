@@ -163,18 +163,17 @@ async def get_test():
 
 
 @play_router.get("/play/scenarioes")
-async def get_scenarioes():
-    response = table.query(KeyConditionExpression=Key("PK").eq("scenario"))
+async def get_scenarioes(user_id: str = Depends(extract_user_id_without_verification)):
+    response = table.query(
+        KeyConditionExpression=Key("PK").eq("scenario")
+    )
     response_items = response.get("Items", [])
     return response_items
 
 
 @play_router.post("/play/create")
-async def create_game(
-    request: play_models.CreateGameRequest,
-    user_id: str = Depends(extract_user_id_without_verification),
-) -> play_models.CreateGameResponse:
-    scenarioes = request.scenarioes
+async def create_game(request: play_models.CreateGameRequest, user_id: str = Depends(extract_user_id_without_verification)) -> play_models.CreateGameResponse:
+    scenario_id = request.scenario_id
     game_name = request.game_name
 
     game_id = str(uuid.uuid4())
@@ -188,7 +187,7 @@ async def create_game(
         "struct": None,
         "funds": 0,
         "current_month": 0,
-        "scenarioes": scenarioes,
+        "scenario_id": scenario_id,
         "is_finished": False,
         "created_at": datetime.now().isoformat(),
     }
@@ -212,7 +211,7 @@ async def create_game(
         "struct": game_item["struct"],
         "funds": game_item["funds"],
         "current_month": game_item["current_month"],
-        "scenarioes": game_item["scenarioes"],
+        "scenario_id": game_item["scenario_id"],
         "is_finished": game_item["is_finished"],
         "created_at": game_item["created_at"],
     }
@@ -231,15 +230,20 @@ async def get_game(
         & Key("SK").begins_with("game"),
         FilterExpression=Attr("is_finished").eq(False),
     )
-    game_data = response.get("Items", [{}])[0]
 
+    length = len(response["Items"])
+    if length == 0:
+        raise HTTPException(status_code=404, detail="ゲームが見つかりません")
+    
+    game_data = response["Items"][0]
+    
     formatted_response = {
         "user_id": game_data.get("PK", "").replace("user#", ""),
         "game_id": game_data.get("SK", "").replace("game#", ""),
         "struct": game_data.get("struct"),
         "funds": game_data.get("funds"),
         "current_month": game_data.get("current_month"),
-        "scenarioes": game_data.get("scenarioes"),
+        "scenario_id": game_data.get("scenario_id", ""),
         "is_finished": game_data.get("is_finished"),
         "created_at": game_data.get("created_at"),
     }
