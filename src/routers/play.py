@@ -232,7 +232,7 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
 @play_router.get("/play/games")
 async def get_game(
     user_id: str = Depends(extract_user_id_without_verification),
-) -> play_models.GetGameResponse:
+) -> play_models.GetGameResponses:
     formatted_user_id = f"user#{user_id}"
 
     response = table.query(
@@ -245,20 +245,23 @@ async def get_game(
     if length == 0:
         raise HTTPException(status_code=404, detail="ゲームが見つかりません")
     
-    game_data = response["Items"][0]
+    # 全てのゲームデータを処理
+    games_list = []
+    for game_data in response["Items"]:
+        formatted_game = {
+            "user_id": game_data.get("PK", "").replace("user#", ""),
+            "game_id": game_data.get("SK", "").replace("game#", ""),
+            "struct": game_data.get("struct"),
+            "funds": game_data.get("funds"),
+            "current_month": game_data.get("current_month"),
+            "scenario_id": game_data.get("scenario_id", ""),
+            "is_finished": game_data.get("is_finished"),
+            "created_at": game_data.get("created_at"),
+        }
+        games_list.append(formatted_game)
     
-    formatted_response = {
-        "user_id": game_data.get("PK", "").replace("user#", ""),
-        "game_id": game_data.get("SK", "").replace("game#", ""),
-        "struct": game_data.get("struct"),
-        "funds": game_data.get("funds"),
-        "current_month": game_data.get("current_month"),
-        "scenario_id": game_data.get("scenario_id", ""),
-        "is_finished": game_data.get("is_finished"),
-        "created_at": game_data.get("created_at"),
-    }
-
-    return play_models.GetGameResponse(**formatted_response)
+    # 複数のゲームデータを返す
+    return play_models.GetGameResponses(games=games_list)
 
 
 @play_router.post("/play/report/{game_id}")
@@ -468,7 +471,7 @@ async def update_game(
             Key={"PK": pk, "SK": sk},
             UpdateExpression="SET #struct = :data",
             ExpressionAttributeNames={"#struct": "struct"},
-            ExpressionAttributeValues={":data": request.data},
+            ExpressionAttributeValues={":data": request.struct},
         )
 
         return {"message": "Game data updated successfully"}

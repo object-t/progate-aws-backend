@@ -43,11 +43,11 @@ class GetGameResponse(BaseModel):
     is_finished: bool
     created_at: str
 
-class UpdateGameRequest(BaseModel):
-    data: Dict[str, Any]
+class GetGameResponses(BaseModel):
+    games: List[GetGameResponse]
 
 class UpdateGameRequest(BaseModel):
-    data: dict
+    struct: dict
 
 class GetStructResponse(BaseModel):
     struct: Optional[dict] = None
