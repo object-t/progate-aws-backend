@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Key, Attr
 import uuid
 from datetime import datetime
 from settings import get_DynamoDbSettings
-from routers.extractor import extract_user_id_from_token
+from routers.extractor import extract_user_id_without_verification
 
 share_router = APIRouter()
 
@@ -24,7 +24,7 @@ table_name = "game"
 table = dynamodb.Table(table_name)
 
 @share_router.get("/share/structures", response_model=share_models.SharedStructuresResponse)
-async def get_shared_structures(page: int = Query(1, ge=1), user_id: str = Depends(extract_user_id_from_token)):
+async def get_shared_structures(page: int = Query(1, ge=1), user_id: str = Depends(extract_user_id_without_verification)):
 
     page_size = 10
     
@@ -89,7 +89,7 @@ async def get_shared_structure(sandbox_id: str):
 async def update_shared_structure(
     sandbox_id: str, 
     request: share_models.UpdateSharedStructureRequest,
-    user_id: str = Depends(extract_user_id_from_token)
+    user_id: str = Depends(extract_user_id_without_verification)
 ):
     pk = f"user#{user_id}"
     sk = f"sandbox#{sandbox_id}"
