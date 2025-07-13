@@ -195,7 +195,7 @@ async def create_game(request: play_models.CreateGameRequest, user_id: str = Dep
         "SK": f"game#{game_id}",
         "game_name": game_name,
         "struct": None,
-        "funds": 0,
+        "funds": 100,
         "current_month": 0,
         "scenario_id": scenario_id,
         "is_finished": False,
