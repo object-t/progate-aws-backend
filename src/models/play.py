@@ -47,10 +47,7 @@ class GetGameResponses(BaseModel):
     games: List[GetGameResponse]
 
 class UpdateGameRequest(BaseModel):
-    data: Dict[str, Any]
-
-class UpdateGameRequest(BaseModel):
-    data: dict
+    struct: dict
 
 class GetStructResponse(BaseModel):
     struct: Optional[dict] = None

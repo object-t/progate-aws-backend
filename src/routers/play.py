@@ -471,7 +471,7 @@ async def update_game(
             Key={"PK": pk, "SK": sk},
             UpdateExpression="SET #struct = :data",
             ExpressionAttributeNames={"#struct": "struct"},
-            ExpressionAttributeValues={":data": request.data},
+            ExpressionAttributeValues={":data": request.struct},
         )
 
         return {"message": "Game data updated successfully"}
